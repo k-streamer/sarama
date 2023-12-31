@@ -10,8 +10,8 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 
-	"github.com/IBM/sarama"
-	"github.com/IBM/sarama/tools/tls"
+	"github.com/k-streamer/sarama"
+	"github.com/k-streamer/sarama/tools/tls"
 )
 
 var (

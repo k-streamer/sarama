@@ -1,4 +1,4 @@
-module github.com/IBM/sarama/examples/txn_producer
+module github.com/k-streamer/sarama/examples/txn_producer
 
 go 1.18
 
@@ -27,4 +27,4 @@ require (
 	golang.org/x/net v0.19.0 // indirect
 )
 
-replace github.com/IBM/sarama => ../../
+replace github.com/k-streamer/sarama => ../../

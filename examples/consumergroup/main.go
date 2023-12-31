@@ -12,7 +12,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/IBM/sarama"
+	"github.com/k-streamer/sarama"
 )
 
 // Sarama configuration options
@@ -184,7 +184,7 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 	// NOTE:
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
-	// https://github.com/IBM/sarama/blob/main/consumer_group.go#L27-L29
+	// https://github.com/k-streamer/sarama/blob/main/consumer_group.go#L27-L29
 	for {
 		select {
 		case message, ok := <-claim.Messages():

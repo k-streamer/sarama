@@ -17,7 +17,7 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 
-	"github.com/IBM/sarama"
+	"github.com/k-streamer/sarama"
 )
 
 // Sarama configuration options
