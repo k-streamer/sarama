@@ -1,4 +1,4 @@
-module github.com/IBM/sarama
+module github.com/k-streamer/sarama
 
 go 1.18
 
