@@ -5,7 +5,7 @@ type ListGroupsRequest struct {
 	StatesFilter []string // version 4 or later
 }
 
-func (r *ListGroupsRequest) encode(pe packetEncoder) error {
+func (r *ListGroupsRequest) Encode(pe packetEncoder) error {
 	if r.Version >= 4 {
 		pe.putCompactArrayLength(len(r.StatesFilter))
 		for _, filter := range r.StatesFilter {
@@ -21,7 +21,7 @@ func (r *ListGroupsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *ListGroupsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *ListGroupsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.Version >= 4 {
 		filterLen, err := pd.getCompactArrayLength()
@@ -45,26 +45,26 @@ func (r *ListGroupsRequest) decode(pd packetDecoder, version int16) (err error) 
 	return nil
 }
 
-func (r *ListGroupsRequest) key() int16 {
+func (r *ListGroupsRequest) APIKey() int16 {
 	return 16
 }
 
-func (r *ListGroupsRequest) version() int16 {
+func (r *ListGroupsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *ListGroupsRequest) headerVersion() int16 {
+func (r *ListGroupsRequest) HeaderVersion() int16 {
 	if r.Version >= 3 {
 		return 2
 	}
 	return 1
 }
 
-func (r *ListGroupsRequest) isValidVersion() bool {
+func (r *ListGroupsRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 4
 }
 
-func (r *ListGroupsRequest) requiredVersion() KafkaVersion {
+func (r *ListGroupsRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 4:
 		return V2_6_0_0

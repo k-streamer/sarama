@@ -145,7 +145,7 @@ func TestNewOffsetManagerOffsetsAutoCommit(t *testing.T) {
 
 			ocResponse := new(OffsetCommitResponse)
 			ocResponse.AddError("my_topic", 0, ErrNoError)
-			handler := func(req *request) (res encoderWithHeader) {
+			handler := func(req *Request) (res EncoderWithHeader) {
 				close(called)
 				return ocResponse
 			}
@@ -193,7 +193,7 @@ func TestNewOffsetManagerOffsetsManualCommit(t *testing.T) {
 	ocResponse := new(OffsetCommitResponse)
 	ocResponse.AddError("my_topic", 0, ErrNoError)
 	called := make(chan none)
-	handler := func(req *request) (res encoderWithHeader) {
+	handler := func(req *Request) (res EncoderWithHeader) {
 		close(called)
 		return ocResponse
 	}
@@ -395,11 +395,11 @@ func TestPartitionOffsetManagerResetOffsetWithRetention(t *testing.T) {
 
 	ocResponse := new(OffsetCommitResponse)
 	ocResponse.AddError("my_topic", 0, ErrNoError)
-	handler := func(req *request) (res encoderWithHeader) {
-		if req.body.version() != 2 {
-			t.Errorf("Expected to be using version 2. Actual: %v", req.body.version())
+	handler := func(req *Request) (res EncoderWithHeader) {
+		if req.Body.APIVersion() != 2 {
+			t.Errorf("Expected to be using version 2. Actual: %v", req.Body.APIVersion())
 		}
-		offsetCommitRequest := req.body.(*OffsetCommitRequest)
+		offsetCommitRequest := req.Body.(*OffsetCommitRequest)
 		if offsetCommitRequest.RetentionTime != (60 * 60 * 1000) {
 			t.Errorf("Expected an hour retention time. Actual: %v", offsetCommitRequest.RetentionTime)
 		}
@@ -456,11 +456,11 @@ func TestPartitionOffsetManagerMarkOffsetWithRetention(t *testing.T) {
 
 	ocResponse := new(OffsetCommitResponse)
 	ocResponse.AddError("my_topic", 0, ErrNoError)
-	handler := func(req *request) (res encoderWithHeader) {
-		if req.body.version() != 2 {
-			t.Errorf("Expected to be using version 2. Actual: %v", req.body.version())
+	handler := func(req *Request) (res EncoderWithHeader) {
+		if req.Body.APIVersion() != 2 {
+			t.Errorf("Expected to be using version 2. Actual: %v", req.Body.APIVersion())
 		}
-		offsetCommitRequest := req.body.(*OffsetCommitRequest)
+		offsetCommitRequest := req.Body.(*OffsetCommitRequest)
 		if offsetCommitRequest.RetentionTime != (60 * 60 * 1000) {
 			t.Errorf("Expected an hour retention time. Actual: %v", offsetCommitRequest.RetentionTime)
 		}

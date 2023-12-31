@@ -15,10 +15,10 @@ type ConsumerMetadataResponse struct {
 	CoordinatorPort int32  // deprecated: use Coordinator.Addr()
 }
 
-func (r *ConsumerMetadataResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *ConsumerMetadataResponse) Decode(pd packetDecoder, version int16) (err error) {
 	tmp := new(FindCoordinatorResponse)
 
-	if err := tmp.decode(pd, version); err != nil {
+	if err := tmp.Decode(pd, version); err != nil {
 		return err
 	}
 
@@ -46,7 +46,7 @@ func (r *ConsumerMetadataResponse) decode(pd packetDecoder, version int16) (err 
 	return nil
 }
 
-func (r *ConsumerMetadataResponse) encode(pe packetEncoder) error {
+func (r *ConsumerMetadataResponse) Encode(pe packetEncoder) error {
 	if r.Coordinator == nil {
 		r.Coordinator = new(Broker)
 		r.Coordinator.id = r.CoordinatorID
@@ -59,30 +59,30 @@ func (r *ConsumerMetadataResponse) encode(pe packetEncoder) error {
 		Coordinator: r.Coordinator,
 	}
 
-	if err := tmp.encode(pe); err != nil {
+	if err := tmp.Encode(pe); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r *ConsumerMetadataResponse) key() int16 {
+func (r *ConsumerMetadataResponse) APIKey() int16 {
 	return 10
 }
 
-func (r *ConsumerMetadataResponse) version() int16 {
+func (r *ConsumerMetadataResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *ConsumerMetadataResponse) headerVersion() int16 {
+func (r *ConsumerMetadataResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *ConsumerMetadataResponse) isValidVersion() bool {
+func (r *ConsumerMetadataResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 2
 }
 
-func (r *ConsumerMetadataResponse) requiredVersion() KafkaVersion {
+func (r *ConsumerMetadataResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 2:
 		return V2_0_0_0

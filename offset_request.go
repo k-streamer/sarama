@@ -23,7 +23,7 @@ func (b *offsetRequestBlock) encode(pe packetEncoder, version int16) error {
 	return nil
 }
 
-func (b *offsetRequestBlock) decode(pd packetDecoder, version int16) (err error) {
+func (b *offsetRequestBlock) Decode(pd packetDecoder, version int16) (err error) {
 	b.currentLeaderEpoch = -1
 	if version >= 4 {
 		if b.currentLeaderEpoch, err = pd.getInt32(); err != nil {
@@ -52,7 +52,7 @@ type OffsetRequest struct {
 	blocks         map[string]map[int32]*offsetRequestBlock
 }
 
-func (r *OffsetRequest) encode(pe packetEncoder) error {
+func (r *OffsetRequest) Encode(pe packetEncoder) error {
 	if r.isReplicaIDSet {
 		pe.putInt32(r.replicaID)
 	} else {
@@ -87,7 +87,7 @@ func (r *OffsetRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *OffsetRequest) decode(pd packetDecoder, version int16) error {
+func (r *OffsetRequest) Decode(pd packetDecoder, version int16) error {
 	r.Version = version
 
 	replicaID, err := pd.getInt32()
@@ -134,7 +134,7 @@ func (r *OffsetRequest) decode(pd packetDecoder, version int16) error {
 				return err
 			}
 			block := &offsetRequestBlock{}
-			if err := block.decode(pd, version); err != nil {
+			if err := block.Decode(pd, version); err != nil {
 				return err
 			}
 			r.blocks[topic][partition] = block
@@ -143,23 +143,23 @@ func (r *OffsetRequest) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (r *OffsetRequest) key() int16 {
+func (r *OffsetRequest) APIKey() int16 {
 	return 2
 }
 
-func (r *OffsetRequest) version() int16 {
+func (r *OffsetRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *OffsetRequest) headerVersion() int16 {
+func (r *OffsetRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *OffsetRequest) isValidVersion() bool {
+func (r *OffsetRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 4
 }
 
-func (r *OffsetRequest) requiredVersion() KafkaVersion {
+func (r *OffsetRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 4:
 		return V2_1_0_0

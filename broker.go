@@ -448,7 +448,7 @@ func (b *Broker) AsyncProduce(request *ProduceRequest, cb ProduceCallback) error
 		// Create ProduceResponse early to provide the header version
 		res := new(ProduceResponse)
 		promise = &responsePromise{
-			headerVersion: res.headerVersion(),
+			headerVersion: res.HeaderVersion(),
 			// Packets will be converted to a ProduceResponse in the responseReceiver goroutine
 			handler: func(packets []byte, err error) {
 				if err != nil {
@@ -457,7 +457,7 @@ func (b *Broker) AsyncProduce(request *ProduceRequest, cb ProduceCallback) error
 					return
 				}
 
-				if err := versionedDecode(packets, res, request.version(), metricRegistry); err != nil {
+				if err := VersionedDecode(packets, res, request.APIVersion(), metricRegistry); err != nil {
 					// Malformed response
 					cb(nil, err)
 					return
@@ -751,7 +751,7 @@ func (b *Broker) DeleteAcls(request *DeleteAclsRequest) (*DeleteAclsResponse, er
 // InitProducerID sends an init producer request and returns a response or error
 func (b *Broker) InitProducerID(request *InitProducerIDRequest) (*InitProducerIDResponse, error) {
 	response := new(InitProducerIDResponse)
-	response.Version = request.version()
+	response.Version = request.APIVersion()
 
 	err := b.sendAndReceive(request, response)
 	if err != nil {
@@ -951,7 +951,7 @@ func (b *Broker) write(buf []byte) (n int, err error) {
 }
 
 // b.lock must be held by caller
-func (b *Broker) send(rb protocolBody, promiseResponse bool, responseHeaderVersion int16) (*responsePromise, error) {
+func (b *Broker) send(rb ProtocolBody, promiseResponse bool, responseHeaderVersion int16) (*responsePromise, error) {
 	var promise *responsePromise
 	if promiseResponse {
 		// Packets or error will be sent to the following channels
@@ -976,7 +976,7 @@ func makeResponsePromise(responseHeaderVersion int16) *responsePromise {
 }
 
 // b.lock must be held by caller
-func (b *Broker) sendWithPromise(rb protocolBody, promise *responsePromise) error {
+func (b *Broker) sendWithPromise(rb ProtocolBody, promise *responsePromise) error {
 	if b.conn == nil {
 		if b.connErr != nil {
 			return b.connErr
@@ -995,13 +995,13 @@ func (b *Broker) sendWithPromise(rb protocolBody, promise *responsePromise) erro
 }
 
 // b.lock must be held by caller
-func (b *Broker) sendInternal(rb protocolBody, promise *responsePromise) error {
-	if !b.conf.Version.IsAtLeast(rb.requiredVersion()) {
+func (b *Broker) sendInternal(rb ProtocolBody, promise *responsePromise) error {
+	if !b.conf.Version.IsAtLeast(rb.RequiredVersion()) {
 		return ErrUnsupportedVersion
 	}
 
-	req := &request{correlationID: b.correlationID, clientID: b.conf.ClientID, body: rb}
-	buf, err := encode(req, b.metricRegistry)
+	req := &Request{CorrelationID: b.correlationID, ClientID: b.conf.ClientID, Body: rb}
+	buf, err := Encode(req, b.metricRegistry)
 	if err != nil {
 		return err
 	}
@@ -1028,18 +1028,18 @@ func (b *Broker) sendInternal(rb protocolBody, promise *responsePromise) error {
 	}
 
 	promise.requestTime = requestTime
-	promise.correlationID = req.correlationID
+	promise.correlationID = req.CorrelationID
 	b.responses <- promise
 
 	return nil
 }
 
-func (b *Broker) sendAndReceive(req protocolBody, res protocolBody) error {
+func (b *Broker) sendAndReceive(req ProtocolBody, res ProtocolBody) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 	responseHeaderVersion := int16(-1)
 	if res != nil {
-		responseHeaderVersion = res.headerVersion()
+		responseHeaderVersion = res.HeaderVersion()
 	}
 
 	promise, err := b.send(req, res != nil, responseHeaderVersion)
@@ -1061,16 +1061,16 @@ func (b *Broker) sendAndReceive(req protocolBody, res protocolBody) error {
 	return nil
 }
 
-func handleResponsePromise(req protocolBody, res protocolBody, promise *responsePromise, metricRegistry metrics.Registry) error {
+func handleResponsePromise(req ProtocolBody, res ProtocolBody, promise *responsePromise, metricRegistry metrics.Registry) error {
 	select {
 	case buf := <-promise.packets:
-		return versionedDecode(buf, res, req.version(), metricRegistry)
+		return VersionedDecode(buf, res, req.APIVersion(), metricRegistry)
 	case err := <-promise.errors:
 		return err
 	}
 }
 
-func (b *Broker) decode(pd packetDecoder, version int16) (err error) {
+func (b *Broker) Decode(pd packetDecoder, version int16) (err error) {
 	b.id, err = pd.getInt32()
 	if err != nil {
 		return err
@@ -1182,7 +1182,7 @@ func (b *Broker) responseReceiver() {
 		}
 
 		decodedHeader := responseHeader{}
-		err = versionedDecode(header, &decodedHeader, response.headerVersion, b.metricRegistry)
+		err = VersionedDecode(header, &decodedHeader, response.headerVersion, b.metricRegistry)
 		if err != nil {
 			b.updateIncomingCommunicationMetrics(bytesReadHeader, requestLatency)
 			dead = err
@@ -1237,7 +1237,7 @@ func (b *Broker) authenticateViaSASLv1() error {
 	if b.conf.Net.SASL.Handshake {
 		handshakeRequest := &SaslHandshakeRequest{Mechanism: string(b.conf.Net.SASL.Mechanism), Version: b.conf.Net.SASL.Version}
 		handshakeResponse := new(SaslHandshakeResponse)
-		prom := makeResponsePromise(handshakeResponse.version())
+		prom := makeResponsePromise(handshakeResponse.APIVersion())
 
 		handshakeErr := b.sendInternal(handshakeRequest, prom)
 		if handshakeErr != nil {
@@ -1258,7 +1258,7 @@ func (b *Broker) authenticateViaSASLv1() error {
 	authSendReceiver := func(authBytes []byte) (*SaslAuthenticateResponse, error) {
 		authenticateRequest := b.createSaslAuthenticateRequest(authBytes)
 		authenticateResponse := new(SaslAuthenticateResponse)
-		prom := makeResponsePromise(authenticateResponse.version())
+		prom := makeResponsePromise(authenticateResponse.APIVersion())
 		authErr := b.sendInternal(authenticateRequest, prom)
 		if authErr != nil {
 			Logger.Printf("Error while performing SASL Auth %s\n", b.addr)
@@ -1304,8 +1304,8 @@ func (b *Broker) sendAndReceiveKerberos() error {
 func (b *Broker) sendAndReceiveSASLHandshake(saslType SASLMechanism, version int16) error {
 	rb := &SaslHandshakeRequest{Mechanism: string(saslType), Version: version}
 
-	req := &request{correlationID: b.correlationID, clientID: b.conf.ClientID, body: rb}
-	buf, err := encode(req, b.metricRegistry)
+	req := &Request{CorrelationID: b.correlationID, ClientID: b.conf.ClientID, Body: rb}
+	buf, err := Encode(req, b.metricRegistry)
 	if err != nil {
 		return err
 	}
@@ -1342,7 +1342,7 @@ func (b *Broker) sendAndReceiveSASLHandshake(saslType SASLMechanism, version int
 	b.updateIncomingCommunicationMetrics(n+8, time.Since(requestTime))
 	res := &SaslHandshakeResponse{}
 
-	err = versionedDecode(payload, res, 0, b.metricRegistry)
+	err = VersionedDecode(payload, res, 0, b.metricRegistry)
 	if err != nil {
 		Logger.Printf("Failed to parse SASL handshake : %s\n", err.Error())
 		return err
@@ -1659,19 +1659,19 @@ func (b *Broker) updateOutgoingCommunicationMetrics(bytes int) {
 	}
 }
 
-func (b *Broker) updateProtocolMetrics(rb protocolBody) {
-	protocolRequestsRate := b.protocolRequestsRate[rb.key()]
+func (b *Broker) updateProtocolMetrics(rb ProtocolBody) {
+	protocolRequestsRate := b.protocolRequestsRate[rb.APIKey()]
 	if protocolRequestsRate == nil {
-		protocolRequestsRate = metrics.GetOrRegisterMeter(fmt.Sprintf("protocol-requests-rate-%d", rb.key()), b.metricRegistry)
-		b.protocolRequestsRate[rb.key()] = protocolRequestsRate
+		protocolRequestsRate = metrics.GetOrRegisterMeter(fmt.Sprintf("protocol-requests-rate-%d", rb.APIKey()), b.metricRegistry)
+		b.protocolRequestsRate[rb.APIKey()] = protocolRequestsRate
 	}
 	protocolRequestsRate.Mark(1)
 
 	if b.brokerProtocolRequestsRate != nil {
-		brokerProtocolRequestsRate := b.brokerProtocolRequestsRate[rb.key()]
+		brokerProtocolRequestsRate := b.brokerProtocolRequestsRate[rb.APIKey()]
 		if brokerProtocolRequestsRate == nil {
-			brokerProtocolRequestsRate = b.registerMeter(fmt.Sprintf("protocol-requests-rate-%d", rb.key()))
-			b.brokerProtocolRequestsRate[rb.key()] = brokerProtocolRequestsRate
+			brokerProtocolRequestsRate = b.registerMeter(fmt.Sprintf("protocol-requests-rate-%d", rb.APIKey()))
+			b.brokerProtocolRequestsRate[rb.APIKey()] = brokerProtocolRequestsRate
 		}
 		brokerProtocolRequestsRate.Mark(1)
 	}
@@ -1681,7 +1681,7 @@ type throttleSupport interface {
 	throttleTime() time.Duration
 }
 
-func (b *Broker) handleThrottledResponse(resp protocolBody) {
+func (b *Broker) handleThrottledResponse(resp ProtocolBody) {
 	throttledResponse, ok := resp.(throttleSupport)
 	if !ok {
 		return

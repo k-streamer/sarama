@@ -9,7 +9,7 @@ type SaslAuthenticateResponse struct {
 	SessionLifetimeMs int64
 }
 
-func (r *SaslAuthenticateResponse) encode(pe packetEncoder) error {
+func (r *SaslAuthenticateResponse) Encode(pe packetEncoder) error {
 	pe.putInt16(int16(r.Err))
 	if err := pe.putNullableString(r.ErrorMessage); err != nil {
 		return err
@@ -23,7 +23,7 @@ func (r *SaslAuthenticateResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *SaslAuthenticateResponse) decode(pd packetDecoder, version int16) error {
+func (r *SaslAuthenticateResponse) Decode(pd packetDecoder, version int16) error {
 	r.Version = version
 	kerr, err := pd.getInt16()
 	if err != nil {
@@ -47,23 +47,23 @@ func (r *SaslAuthenticateResponse) decode(pd packetDecoder, version int16) error
 	return err
 }
 
-func (r *SaslAuthenticateResponse) key() int16 {
+func (r *SaslAuthenticateResponse) APIKey() int16 {
 	return APIKeySASLAuth
 }
 
-func (r *SaslAuthenticateResponse) version() int16 {
+func (r *SaslAuthenticateResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *SaslAuthenticateResponse) headerVersion() int16 {
+func (r *SaslAuthenticateResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *SaslAuthenticateResponse) isValidVersion() bool {
+func (r *SaslAuthenticateResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 1
 }
 
-func (r *SaslAuthenticateResponse) requiredVersion() KafkaVersion {
+func (r *SaslAuthenticateResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 1:
 		return V2_2_0_0

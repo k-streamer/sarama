@@ -154,10 +154,10 @@ type ProducerMessage struct {
 	Topic string // The Kafka topic for this message.
 	// The partitioning key for this message. Pre-existing Encoders include
 	// StringEncoder and ByteEncoder.
-	Key Encoder
+	Key UtilEncoder
 	// The actual message to store in Kafka. Pre-existing Encoders include
 	// StringEncoder and ByteEncoder.
-	Value Encoder
+	Value UtilEncoder
 
 	// The headers are key-value pairs that are transparently passed
 	// by Kafka between producers and consumers.

@@ -690,7 +690,7 @@ func TestAsyncProducerMultipleRetriesWithConcurrentRequests(t *testing.T) {
 	leader := NewMockBroker(t, 2)
 
 	// The seed broker only handles Metadata request
-	seedBroker.setHandler(func(req *request) (res encoderWithHeader) {
+	seedBroker.setHandler(func(req *Request) (res EncoderWithHeader) {
 		metadataLeader := new(MetadataResponse)
 		metadataLeader.AddBroker(leader.Addr(), leader.BrokerID())
 		metadataLeader.AddTopicPartition("my_topic", 0, leader.BrokerID(), nil, nil, nil, ErrNoError)
@@ -699,7 +699,7 @@ func TestAsyncProducerMultipleRetriesWithConcurrentRequests(t *testing.T) {
 
 	// Simulate a slow broker by taking ~200ms to handle requests
 	// therefore triggering the read timeout and the retry logic
-	leader.setHandler(func(req *request) (res encoderWithHeader) {
+	leader.setHandler(func(req *Request) (res EncoderWithHeader) {
 		time.Sleep(200 * time.Millisecond)
 		// Will likely not be read by the producer (read timeout)
 		prodSuccess := new(ProduceResponse)
@@ -739,7 +739,7 @@ func TestAsyncProducerBrokerRestart(t *testing.T) {
 	leader := NewMockBroker(t, 2)
 
 	var leaderLock sync.Mutex
-	metadataRequestHandlerFunc := func(req *request) (res encoderWithHeader) {
+	metadataRequestHandlerFunc := func(req *Request) (res EncoderWithHeader) {
 		leaderLock.Lock()
 		defer leaderLock.Unlock()
 		metadataLeader := new(MetadataResponse)
@@ -753,8 +753,8 @@ func TestAsyncProducerBrokerRestart(t *testing.T) {
 
 	var emptyValues int32 = 0
 
-	countRecordsWithEmptyValue := func(req *request) {
-		preq := req.body.(*ProduceRequest)
+	countRecordsWithEmptyValue := func(req *Request) {
+		preq := req.Body.(*ProduceRequest)
 		if batch := preq.records["my_topic"][0].RecordBatch; batch != nil {
 			for _, record := range batch.Records {
 				if len(record.Value) == 0 {
@@ -771,7 +771,7 @@ func TestAsyncProducerBrokerRestart(t *testing.T) {
 		}
 	}
 
-	failedProduceRequestHandlerFunc := func(req *request) (res encoderWithHeader) {
+	failedProduceRequestHandlerFunc := func(req *Request) (res EncoderWithHeader) {
 		countRecordsWithEmptyValue(req)
 
 		time.Sleep(50 * time.Millisecond)
@@ -781,7 +781,7 @@ func TestAsyncProducerBrokerRestart(t *testing.T) {
 		return prodSuccess
 	}
 
-	succeededProduceRequestHandlerFunc := func(req *request) (res encoderWithHeader) {
+	succeededProduceRequestHandlerFunc := func(req *Request) (res EncoderWithHeader) {
 		countRecordsWithEmptyValue(req)
 
 		prodSuccess := new(ProduceResponse)
@@ -1220,8 +1220,8 @@ func TestAsyncProducerIdempotentRetryCheckBatch(t *testing.T) {
 		lastBatchFirstSeq := -1
 		lastBatchSize := -1
 		lastSequenceWrittenToDisk := -1
-		handlerFailBeforeWrite := func(req *request) (res encoderWithHeader) {
-			switch req.body.key() {
+		handlerFailBeforeWrite := func(req *Request) (res EncoderWithHeader) {
+			switch req.Body.APIKey() {
 			case 3:
 				return metadataResponse
 			case 22:
@@ -1229,7 +1229,7 @@ func TestAsyncProducerIdempotentRetryCheckBatch(t *testing.T) {
 			case 0:
 				prodCounter++
 
-				preq := req.body.(*ProduceRequest)
+				preq := req.Body.(*ProduceRequest)
 				batch := preq.records["my_topic"][0].RecordBatch
 				batchFirstSeq := int(batch.FirstSequence)
 				batchSize := len(batch.Records)
@@ -1336,8 +1336,8 @@ func TestAsyncProducerIdempotentRetryCheckBatch_2378(t *testing.T) {
 	}
 	prodNotLeaderResponse.AddTopicPartition("my_topic", 0, ErrNotEnoughReplicas)
 
-	handlerFailBeforeWrite := func(req *request) (res encoderWithHeader) {
-		switch req.body.key() {
+	handlerFailBeforeWrite := func(req *Request) (res EncoderWithHeader) {
+		switch req.Body.APIKey() {
 		case 3:
 			return metadataResponse
 		case 22:

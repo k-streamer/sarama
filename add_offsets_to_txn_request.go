@@ -9,7 +9,7 @@ type AddOffsetsToTxnRequest struct {
 	GroupID         string
 }
 
-func (a *AddOffsetsToTxnRequest) encode(pe packetEncoder) error {
+func (a *AddOffsetsToTxnRequest) Encode(pe packetEncoder) error {
 	if err := pe.putString(a.TransactionalID); err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func (a *AddOffsetsToTxnRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AddOffsetsToTxnRequest) decode(pd packetDecoder, version int16) (err error) {
+func (a *AddOffsetsToTxnRequest) Decode(pd packetDecoder, version int16) (err error) {
 	if a.TransactionalID, err = pd.getString(); err != nil {
 		return err
 	}
@@ -41,23 +41,23 @@ func (a *AddOffsetsToTxnRequest) decode(pd packetDecoder, version int16) (err er
 	return nil
 }
 
-func (a *AddOffsetsToTxnRequest) key() int16 {
+func (a *AddOffsetsToTxnRequest) APIKey() int16 {
 	return 25
 }
 
-func (a *AddOffsetsToTxnRequest) version() int16 {
+func (a *AddOffsetsToTxnRequest) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *AddOffsetsToTxnRequest) headerVersion() int16 {
+func (a *AddOffsetsToTxnRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (a *AddOffsetsToTxnRequest) isValidVersion() bool {
+func (a *AddOffsetsToTxnRequest) IsValidVersion() bool {
 	return a.Version >= 0 && a.Version <= 2
 }
 
-func (a *AddOffsetsToTxnRequest) requiredVersion() KafkaVersion {
+func (a *AddOffsetsToTxnRequest) RequiredVersion() KafkaVersion {
 	switch a.Version {
 	case 2:
 		return V2_7_0_0

@@ -28,7 +28,7 @@ type ProduceResponseBlock struct {
 	StartOffset int64     // v5, log_start_offset
 }
 
-func (b *ProduceResponseBlock) decode(pd packetDecoder, version int16) (err error) {
+func (b *ProduceResponseBlock) Decode(pd packetDecoder, version int16) (err error) {
 	tmp, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ type ProduceResponse struct {
 	ThrottleTime time.Duration // v1, throttle_time_ms
 }
 
-func (r *ProduceResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *ProduceResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 
 	numTopics, err := pd.getArrayLength()
@@ -114,7 +114,7 @@ func (r *ProduceResponse) decode(pd packetDecoder, version int16) (err error) {
 			}
 
 			block := new(ProduceResponseBlock)
-			err = block.decode(pd, version)
+			err = block.Decode(pd, version)
 			if err != nil {
 				return err
 			}
@@ -134,7 +134,7 @@ func (r *ProduceResponse) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (r *ProduceResponse) encode(pe packetEncoder) error {
+func (r *ProduceResponse) Encode(pe packetEncoder) error {
 	err := pe.putArrayLength(len(r.Blocks))
 	if err != nil {
 		return err
@@ -163,23 +163,23 @@ func (r *ProduceResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *ProduceResponse) key() int16 {
+func (r *ProduceResponse) APIKey() int16 {
 	return 0
 }
 
-func (r *ProduceResponse) version() int16 {
+func (r *ProduceResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *ProduceResponse) headerVersion() int16 {
+func (r *ProduceResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *ProduceResponse) isValidVersion() bool {
+func (r *ProduceResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 7
 }
 
-func (r *ProduceResponse) requiredVersion() KafkaVersion {
+func (r *ProduceResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 7:
 		return V2_1_0_0

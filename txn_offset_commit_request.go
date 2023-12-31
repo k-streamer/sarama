@@ -9,7 +9,7 @@ type TxnOffsetCommitRequest struct {
 	Topics          map[string][]*PartitionOffsetMetadata
 }
 
-func (t *TxnOffsetCommitRequest) encode(pe packetEncoder) error {
+func (t *TxnOffsetCommitRequest) Encode(pe packetEncoder) error {
 	if err := pe.putString(t.TransactionalID); err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (t *TxnOffsetCommitRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (t *TxnOffsetCommitRequest) decode(pd packetDecoder, version int16) (err error) {
+func (t *TxnOffsetCommitRequest) Decode(pd packetDecoder, version int16) (err error) {
 	t.Version = version
 	if t.TransactionalID, err = pd.getString(); err != nil {
 		return err
@@ -75,7 +75,7 @@ func (t *TxnOffsetCommitRequest) decode(pd packetDecoder, version int16) (err er
 
 		for j := 0; j < m; j++ {
 			partitionOffsetMetadata := new(PartitionOffsetMetadata)
-			if err := partitionOffsetMetadata.decode(pd, version); err != nil {
+			if err := partitionOffsetMetadata.Decode(pd, version); err != nil {
 				return err
 			}
 			t.Topics[topic][j] = partitionOffsetMetadata
@@ -85,23 +85,23 @@ func (t *TxnOffsetCommitRequest) decode(pd packetDecoder, version int16) (err er
 	return nil
 }
 
-func (a *TxnOffsetCommitRequest) key() int16 {
+func (a *TxnOffsetCommitRequest) APIKey() int16 {
 	return 28
 }
 
-func (a *TxnOffsetCommitRequest) version() int16 {
+func (a *TxnOffsetCommitRequest) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *TxnOffsetCommitRequest) headerVersion() int16 {
+func (a *TxnOffsetCommitRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (a *TxnOffsetCommitRequest) isValidVersion() bool {
+func (a *TxnOffsetCommitRequest) IsValidVersion() bool {
 	return a.Version >= 0 && a.Version <= 2
 }
 
-func (a *TxnOffsetCommitRequest) requiredVersion() KafkaVersion {
+func (a *TxnOffsetCommitRequest) RequiredVersion() KafkaVersion {
 	switch a.Version {
 	case 2:
 		return V2_1_0_0
@@ -140,7 +140,7 @@ func (p *PartitionOffsetMetadata) encode(pe packetEncoder, version int16) error 
 	return nil
 }
 
-func (p *PartitionOffsetMetadata) decode(pd packetDecoder, version int16) (err error) {
+func (p *PartitionOffsetMetadata) Decode(pd packetDecoder, version int16) (err error) {
 	if p.Partition, err = pd.getInt32(); err != nil {
 		return err
 	}

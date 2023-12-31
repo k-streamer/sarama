@@ -42,7 +42,7 @@ func (r *Records) setTypeFromFields() (bool, error) {
 	return false, nil
 }
 
-func (r *Records) encode(pe packetEncoder) error {
+func (r *Records) Encode(pe packetEncoder) error {
 	if r.recordsType == unknownRecords {
 		if empty, err := r.setTypeFromFields(); err != nil || empty {
 			return err
@@ -54,12 +54,12 @@ func (r *Records) encode(pe packetEncoder) error {
 		if r.MsgSet == nil {
 			return nil
 		}
-		return r.MsgSet.encode(pe)
+		return r.MsgSet.Encode(pe)
 	case defaultRecords:
 		if r.RecordBatch == nil {
 			return nil
 		}
-		return r.RecordBatch.encode(pe)
+		return r.RecordBatch.Encode(pe)
 	}
 
 	return fmt.Errorf("unknown records type: %v", r.recordsType)
@@ -79,7 +79,7 @@ func (r *Records) setTypeFromMagic(pd packetDecoder) error {
 	return nil
 }
 
-func (r *Records) decode(pd packetDecoder) error {
+func (r *Records) Decode(pd packetDecoder) error {
 	if r.recordsType == unknownRecords {
 		if err := r.setTypeFromMagic(pd); err != nil {
 			return err
@@ -89,10 +89,10 @@ func (r *Records) decode(pd packetDecoder) error {
 	switch r.recordsType {
 	case legacyRecords:
 		r.MsgSet = &MessageSet{}
-		return r.MsgSet.decode(pd)
+		return r.MsgSet.Decode(pd)
 	case defaultRecords:
 		r.RecordBatch = &RecordBatch{}
-		return r.RecordBatch.decode(pd)
+		return r.RecordBatch.Decode(pd)
 	}
 	return fmt.Errorf("unknown records type: %v", r.recordsType)
 }
@@ -209,7 +209,7 @@ func (r *Records) getControlRecord() (ControlRecord, error) {
 
 	firstRecord := r.RecordBatch.Records[0]
 	controlRecord := ControlRecord{}
-	err := controlRecord.decode(&realDecoder{raw: firstRecord.Key}, &realDecoder{raw: firstRecord.Value})
+	err := controlRecord.decode(&RealDecoder{Raw: firstRecord.Key}, &RealDecoder{Raw: firstRecord.Value})
 	if err != nil {
 		return ControlRecord{}, err
 	}

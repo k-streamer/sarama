@@ -20,20 +20,20 @@ type TestReporter interface {
 // allows generating a response based on a request body. MockResponses are used
 // to program behavior of MockBroker in tests.
 type MockResponse interface {
-	For(reqBody versionedDecoder) (res encoderWithHeader)
+	For(reqBody VersionedDecoder) (res EncoderWithHeader)
 }
 
 // MockWrapper is a mock response builder that returns a particular concrete
 // response regardless of the actual request passed to the `For` method.
 type MockWrapper struct {
-	res encoderWithHeader
+	res EncoderWithHeader
 }
 
-func (mw *MockWrapper) For(reqBody versionedDecoder) (res encoderWithHeader) {
+func (mw *MockWrapper) For(reqBody VersionedDecoder) (res EncoderWithHeader) {
 	return mw.res
 }
 
-func NewMockWrapper(res encoderWithHeader) *MockWrapper {
+func NewMockWrapper(res EncoderWithHeader) *MockWrapper {
 	return &MockWrapper{res: res}
 }
 
@@ -52,7 +52,7 @@ func NewMockSequence(responses ...interface{}) *MockSequence {
 		switch res := res.(type) {
 		case MockResponse:
 			ms.responses[i] = res
-		case encoderWithHeader:
+		case EncoderWithHeader:
 			ms.responses[i] = NewMockWrapper(res)
 		default:
 			panic(fmt.Sprintf("Unexpected response type: %T", res))
@@ -61,7 +61,7 @@ func NewMockSequence(responses ...interface{}) *MockSequence {
 	return ms
 }
 
-func (mc *MockSequence) For(reqBody versionedDecoder) (res encoderWithHeader) {
+func (mc *MockSequence) For(reqBody VersionedDecoder) (res EncoderWithHeader) {
 	res = mc.responses[0].For(reqBody)
 	if len(mc.responses) > 1 {
 		mc.responses = mc.responses[1:]
@@ -81,7 +81,7 @@ func NewMockListGroupsResponse(t TestReporter) *MockListGroupsResponse {
 	}
 }
 
-func (m *MockListGroupsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockListGroupsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	request := reqBody.(*ListGroupsRequest)
 	response := &ListGroupsResponse{
 		Version: request.Version,
@@ -112,10 +112,10 @@ func (m *MockDescribeGroupsResponse) AddGroupDescription(groupID string, descrip
 	return m
 }
 
-func (m *MockDescribeGroupsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockDescribeGroupsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	request := reqBody.(*DescribeGroupsRequest)
 
-	response := &DescribeGroupsResponse{Version: request.version()}
+	response := &DescribeGroupsResponse{Version: request.APIVersion()}
 	for _, requestedGroup := range request.Groups {
 		if group, ok := m.groups[requestedGroup]; ok {
 			response.Groups = append(response.Groups, group)
@@ -175,10 +175,10 @@ func (mmr *MockMetadataResponse) SetController(brokerID int32) *MockMetadataResp
 	return mmr
 }
 
-func (mmr *MockMetadataResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mmr *MockMetadataResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	metadataRequest := reqBody.(*MetadataRequest)
 	metadataResponse := &MetadataResponse{
-		Version:      metadataRequest.version(),
+		Version:      metadataRequest.APIVersion(),
 		ControllerID: mmr.controllerID,
 	}
 	for addr, brokerID := range mmr.brokers {
@@ -248,7 +248,7 @@ func (mor *MockOffsetResponse) SetOffset(topic string, partition int32, time, of
 	return mor
 }
 
-func (mor *MockOffsetResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mor *MockOffsetResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	offsetRequest := reqBody.(*OffsetRequest)
 	offsetResponse := &OffsetResponse{Version: offsetRequest.Version}
 	for topic, partitions := range offsetRequest.blocks {
@@ -278,11 +278,11 @@ func (mor *MockOffsetResponse) getOffset(topic string, partition int32, time int
 
 // mockMessage is a message that used to be mocked for `FetchResponse`
 type mockMessage struct {
-	key Encoder
-	msg Encoder
+	key UtilEncoder
+	msg UtilEncoder
 }
 
-func newMockMessage(key, msg Encoder) *mockMessage {
+func newMockMessage(key, msg UtilEncoder) *mockMessage {
 	return &mockMessage{
 		key: key,
 		msg: msg,
@@ -308,11 +308,11 @@ func NewMockFetchResponse(t TestReporter, batchSize int) *MockFetchResponse {
 	}
 }
 
-func (mfr *MockFetchResponse) SetMessage(topic string, partition int32, offset int64, msg Encoder) *MockFetchResponse {
+func (mfr *MockFetchResponse) SetMessage(topic string, partition int32, offset int64, msg UtilEncoder) *MockFetchResponse {
 	return mfr.SetMessageWithKey(topic, partition, offset, nil, msg)
 }
 
-func (mfr *MockFetchResponse) SetMessageWithKey(topic string, partition int32, offset int64, key, msg Encoder) *MockFetchResponse {
+func (mfr *MockFetchResponse) SetMessageWithKey(topic string, partition int32, offset int64, key, msg UtilEncoder) *MockFetchResponse {
 	mfr.messagesLock.Lock()
 	defer mfr.messagesLock.Unlock()
 	partitions := mfr.messages[topic]
@@ -339,7 +339,7 @@ func (mfr *MockFetchResponse) SetHighWaterMark(topic string, partition int32, of
 	return mfr
 }
 
-func (mfr *MockFetchResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mfr *MockFetchResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	fetchRequest := reqBody.(*FetchRequest)
 	res := &FetchResponse{
 		Version: fetchRequest.Version,
@@ -427,10 +427,10 @@ func (mr *MockConsumerMetadataResponse) SetError(group string, kerror KError) *M
 	return mr
 }
 
-func (mr *MockConsumerMetadataResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockConsumerMetadataResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*ConsumerMetadataRequest)
 	group := req.ConsumerGroup
-	res := &ConsumerMetadataResponse{Version: req.version()}
+	res := &ConsumerMetadataResponse{Version: req.APIVersion()}
 	v := mr.coordinators[group]
 	switch v := v.(type) {
 	case *MockBroker:
@@ -476,9 +476,9 @@ func (mr *MockFindCoordinatorResponse) SetError(coordinatorType CoordinatorType,
 	return mr
 }
 
-func (mr *MockFindCoordinatorResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockFindCoordinatorResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*FindCoordinatorRequest)
-	res := &FindCoordinatorResponse{Version: req.version()}
+	res := &FindCoordinatorResponse{Version: req.APIVersion()}
 	var v interface{}
 	switch req.CoordinatorType {
 	case CoordinatorGroup:
@@ -523,10 +523,10 @@ func (mr *MockOffsetCommitResponse) SetError(group, topic string, partition int3
 	return mr
 }
 
-func (mr *MockOffsetCommitResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockOffsetCommitResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*OffsetCommitRequest)
 	group := req.ConsumerGroup
-	res := &OffsetCommitResponse{Version: req.version()}
+	res := &OffsetCommitResponse{Version: req.APIVersion()}
 	for topic, partitions := range req.blocks {
 		for partition := range partitions {
 			res.AddError(topic, partition, mr.getError(group, topic, partition))
@@ -580,10 +580,10 @@ func (mr *MockProduceResponse) SetError(topic string, partition int32, kerror KE
 	return mr
 }
 
-func (mr *MockProduceResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockProduceResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*ProduceRequest)
 	res := &ProduceResponse{
-		Version: req.version(),
+		Version: req.APIVersion(),
 	}
 	if mr.version > 0 {
 		res.Version = mr.version
@@ -642,7 +642,7 @@ func (mr *MockOffsetFetchResponse) SetError(kerror KError) *MockOffsetFetchRespo
 	return mr
 }
 
-func (mr *MockOffsetFetchResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockOffsetFetchResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*OffsetFetchRequest)
 	group := req.ConsumerGroup
 	res := &OffsetFetchResponse{Version: req.Version}
@@ -667,7 +667,7 @@ func NewMockCreateTopicsResponse(t TestReporter) *MockCreateTopicsResponse {
 	return &MockCreateTopicsResponse{t: t}
 }
 
-func (mr *MockCreateTopicsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockCreateTopicsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*CreateTopicsRequest)
 	res := &CreateTopicsResponse{
 		Version: req.Version,
@@ -697,9 +697,9 @@ func NewMockDeleteTopicsResponse(t TestReporter) *MockDeleteTopicsResponse {
 	return &MockDeleteTopicsResponse{t: t}
 }
 
-func (mr *MockDeleteTopicsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockDeleteTopicsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*DeleteTopicsRequest)
-	res := &DeleteTopicsResponse{Version: req.version()}
+	res := &DeleteTopicsResponse{Version: req.APIVersion()}
 	res.TopicErrorCodes = make(map[string]KError)
 
 	for _, topic := range req.Topics {
@@ -722,9 +722,9 @@ func NewMockCreatePartitionsResponse(t TestReporter) *MockCreatePartitionsRespon
 	return &MockCreatePartitionsResponse{t: t}
 }
 
-func (mr *MockCreatePartitionsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockCreatePartitionsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*CreatePartitionsRequest)
-	res := &CreatePartitionsResponse{Version: req.version()}
+	res := &CreatePartitionsResponse{Version: req.APIVersion()}
 	res.TopicPartitionErrors = make(map[string]*TopicPartitionError)
 
 	for topic := range req.TopicPartitions {
@@ -749,10 +749,10 @@ func NewMockAlterPartitionReassignmentsResponse(t TestReporter) *MockAlterPartit
 	return &MockAlterPartitionReassignmentsResponse{t: t}
 }
 
-func (mr *MockAlterPartitionReassignmentsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockAlterPartitionReassignmentsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*AlterPartitionReassignmentsRequest)
 	_ = req
-	res := &AlterPartitionReassignmentsResponse{Version: req.version()}
+	res := &AlterPartitionReassignmentsResponse{Version: req.APIVersion()}
 	return res
 }
 
@@ -764,10 +764,10 @@ func NewMockListPartitionReassignmentsResponse(t TestReporter) *MockListPartitio
 	return &MockListPartitionReassignmentsResponse{t: t}
 }
 
-func (mr *MockListPartitionReassignmentsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockListPartitionReassignmentsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*ListPartitionReassignmentsRequest)
 	_ = req
-	res := &ListPartitionReassignmentsResponse{Version: req.version()}
+	res := &ListPartitionReassignmentsResponse{Version: req.APIVersion()}
 
 	for topic, partitions := range req.blocks {
 		for _, partition := range partitions {
@@ -786,9 +786,9 @@ func NewMockDeleteRecordsResponse(t TestReporter) *MockDeleteRecordsResponse {
 	return &MockDeleteRecordsResponse{t: t}
 }
 
-func (mr *MockDeleteRecordsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockDeleteRecordsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*DeleteRecordsRequest)
-	res := &DeleteRecordsResponse{Version: req.version()}
+	res := &DeleteRecordsResponse{Version: req.APIVersion()}
 	res.Topics = make(map[string]*DeleteRecordsResponseTopic)
 
 	for topic, deleteRecordRequestTopic := range req.Topics {
@@ -809,7 +809,7 @@ func NewMockDescribeConfigsResponse(t TestReporter) *MockDescribeConfigsResponse
 	return &MockDescribeConfigsResponse{t: t}
 }
 
-func (mr *MockDescribeConfigsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockDescribeConfigsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*DescribeConfigsRequest)
 	res := &DescribeConfigsResponse{
 		Version: req.Version,
@@ -907,7 +907,7 @@ func NewMockDescribeConfigsResponseWithErrorCode(t TestReporter) *MockDescribeCo
 	return &MockDescribeConfigsResponseWithErrorCode{t: t}
 }
 
-func (mr *MockDescribeConfigsResponseWithErrorCode) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockDescribeConfigsResponseWithErrorCode) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*DescribeConfigsRequest)
 	res := &DescribeConfigsResponse{
 		Version: req.Version,
@@ -932,9 +932,9 @@ func NewMockAlterConfigsResponse(t TestReporter) *MockAlterConfigsResponse {
 	return &MockAlterConfigsResponse{t: t}
 }
 
-func (mr *MockAlterConfigsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockAlterConfigsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*AlterConfigsRequest)
-	res := &AlterConfigsResponse{Version: req.version()}
+	res := &AlterConfigsResponse{Version: req.APIVersion()}
 
 	for _, r := range req.Resources {
 		res.Resources = append(res.Resources, &AlterConfigsResourceResponse{
@@ -954,9 +954,9 @@ func NewMockAlterConfigsResponseWithErrorCode(t TestReporter) *MockAlterConfigsR
 	return &MockAlterConfigsResponseWithErrorCode{t: t}
 }
 
-func (mr *MockAlterConfigsResponseWithErrorCode) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockAlterConfigsResponseWithErrorCode) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*AlterConfigsRequest)
-	res := &AlterConfigsResponse{Version: req.version()}
+	res := &AlterConfigsResponse{Version: req.APIVersion()}
 
 	for _, r := range req.Resources {
 		res.Resources = append(res.Resources, &AlterConfigsResourceResponse{
@@ -977,9 +977,9 @@ func NewMockIncrementalAlterConfigsResponse(t TestReporter) *MockIncrementalAlte
 	return &MockIncrementalAlterConfigsResponse{t: t}
 }
 
-func (mr *MockIncrementalAlterConfigsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockIncrementalAlterConfigsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*IncrementalAlterConfigsRequest)
-	res := &IncrementalAlterConfigsResponse{Version: req.version()}
+	res := &IncrementalAlterConfigsResponse{Version: req.APIVersion()}
 
 	for _, r := range req.Resources {
 		res.Resources = append(res.Resources, &AlterConfigsResourceResponse{
@@ -999,9 +999,9 @@ func NewMockIncrementalAlterConfigsResponseWithErrorCode(t TestReporter) *MockIn
 	return &MockIncrementalAlterConfigsResponseWithErrorCode{t: t}
 }
 
-func (mr *MockIncrementalAlterConfigsResponseWithErrorCode) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockIncrementalAlterConfigsResponseWithErrorCode) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*IncrementalAlterConfigsRequest)
-	res := &IncrementalAlterConfigsResponse{Version: req.version()}
+	res := &IncrementalAlterConfigsResponse{Version: req.APIVersion()}
 
 	for _, r := range req.Resources {
 		res.Resources = append(res.Resources, &AlterConfigsResourceResponse{
@@ -1022,9 +1022,9 @@ func NewMockCreateAclsResponse(t TestReporter) *MockCreateAclsResponse {
 	return &MockCreateAclsResponse{t: t}
 }
 
-func (mr *MockCreateAclsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockCreateAclsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*CreateAclsRequest)
-	res := &CreateAclsResponse{Version: req.version()}
+	res := &CreateAclsResponse{Version: req.APIVersion()}
 
 	for range req.AclCreations {
 		res.AclCreationResponses = append(res.AclCreationResponses, &AclCreationResponse{Err: ErrNoError})
@@ -1040,9 +1040,9 @@ func NewMockCreateAclsResponseWithError(t TestReporter) *MockCreateAclsResponseE
 	return &MockCreateAclsResponseError{t: t}
 }
 
-func (mr *MockCreateAclsResponseError) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockCreateAclsResponseError) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*CreateAclsRequest)
-	res := &CreateAclsResponse{Version: req.version()}
+	res := &CreateAclsResponse{Version: req.APIVersion()}
 
 	for range req.AclCreations {
 		res.AclCreationResponses = append(res.AclCreationResponses, &AclCreationResponse{Err: ErrInvalidRequest})
@@ -1058,9 +1058,9 @@ func NewMockListAclsResponse(t TestReporter) *MockListAclsResponse {
 	return &MockListAclsResponse{t: t}
 }
 
-func (mr *MockListAclsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockListAclsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*DescribeAclsRequest)
-	res := &DescribeAclsResponse{Version: req.version()}
+	res := &DescribeAclsResponse{Version: req.APIVersion()}
 	res.Err = ErrNoError
 	acl := &ResourceAcls{}
 	if req.ResourceName != nil {
@@ -1101,10 +1101,10 @@ func NewMockSaslAuthenticateResponse(t TestReporter) *MockSaslAuthenticateRespon
 	return &MockSaslAuthenticateResponse{t: t}
 }
 
-func (msar *MockSaslAuthenticateResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (msar *MockSaslAuthenticateResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*SaslAuthenticateRequest)
 	res := &SaslAuthenticateResponse{
-		Version:           req.version(),
+		Version:           req.APIVersion(),
 		Err:               msar.kerror,
 		SaslAuthBytes:     msar.saslAuthBytes,
 		SessionLifetimeMs: msar.sessionLifetimeMs,
@@ -1141,9 +1141,9 @@ func NewMockSaslHandshakeResponse(t TestReporter) *MockSaslHandshakeResponse {
 	return &MockSaslHandshakeResponse{t: t}
 }
 
-func (mshr *MockSaslHandshakeResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mshr *MockSaslHandshakeResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*SaslHandshakeRequest)
-	res := &SaslHandshakeResponse{Version: req.version()}
+	res := &SaslHandshakeResponse{Version: req.APIVersion()}
 	res.Err = mshr.kerror
 	res.EnabledMechanisms = mshr.enabledMechanisms
 	return res
@@ -1163,9 +1163,9 @@ func NewMockDeleteAclsResponse(t TestReporter) *MockDeleteAclsResponse {
 	return &MockDeleteAclsResponse{t: t}
 }
 
-func (mr *MockDeleteAclsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (mr *MockDeleteAclsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*DeleteAclsRequest)
-	res := &DeleteAclsResponse{Version: req.version()}
+	res := &DeleteAclsResponse{Version: req.APIVersion()}
 
 	for range req.Filters {
 		response := &FilterResponse{Err: ErrNoError}
@@ -1189,10 +1189,10 @@ func (m *MockDeleteGroupsResponse) SetDeletedGroups(groups []string) *MockDelete
 	return m
 }
 
-func (m *MockDeleteGroupsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockDeleteGroupsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*DeleteGroupsRequest)
 	resp := &DeleteGroupsResponse{
-		Version:         req.version(),
+		Version:         req.APIVersion(),
 		GroupErrorCodes: map[string]KError{},
 	}
 	for _, group := range m.deletedGroups {
@@ -1220,10 +1220,10 @@ func (m *MockDeleteOffsetResponse) SetDeletedOffset(errorCode KError, topic stri
 	return m
 }
 
-func (m *MockDeleteOffsetResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockDeleteOffsetResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*DeleteOffsetsRequest)
 	resp := &DeleteOffsetsResponse{
-		Version:   req.version(),
+		Version:   req.APIVersion(),
 		ErrorCode: m.errorCode,
 		Errors: map[string]map[int32]KError{
 			m.topic: {m.partition: m.errorPartition},
@@ -1251,7 +1251,7 @@ func NewMockJoinGroupResponse(t TestReporter) *MockJoinGroupResponse {
 	}
 }
 
-func (m *MockJoinGroupResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockJoinGroupResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*JoinGroupRequest)
 	resp := &JoinGroupResponse{
 		Version:       req.Version,
@@ -1297,7 +1297,7 @@ func (m *MockJoinGroupResponse) SetMemberId(id string) *MockJoinGroupResponse {
 }
 
 func (m *MockJoinGroupResponse) SetMember(id string, meta *ConsumerGroupMemberMetadata) *MockJoinGroupResponse {
-	bin, err := encode(meta, nil)
+	bin, err := Encode(meta, nil)
 	if err != nil {
 		panic(fmt.Sprintf("error encoding member metadata: %v", err))
 	}
@@ -1315,10 +1315,10 @@ func NewMockLeaveGroupResponse(t TestReporter) *MockLeaveGroupResponse {
 	return &MockLeaveGroupResponse{t: t}
 }
 
-func (m *MockLeaveGroupResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockLeaveGroupResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*LeaveGroupRequest)
 	resp := &LeaveGroupResponse{
-		Version: req.version(),
+		Version: req.APIVersion(),
 		Err:     m.Err,
 	}
 	return resp
@@ -1340,10 +1340,10 @@ func NewMockSyncGroupResponse(t TestReporter) *MockSyncGroupResponse {
 	return &MockSyncGroupResponse{t: t}
 }
 
-func (m *MockSyncGroupResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockSyncGroupResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*SyncGroupRequest)
 	resp := &SyncGroupResponse{
-		Version:          req.version(),
+		Version:          req.APIVersion(),
 		Err:              m.Err,
 		MemberAssignment: m.MemberAssignment,
 	}
@@ -1356,7 +1356,7 @@ func (m *MockSyncGroupResponse) SetError(kerr KError) *MockSyncGroupResponse {
 }
 
 func (m *MockSyncGroupResponse) SetMemberAssignment(assignment *ConsumerGroupMemberAssignment) *MockSyncGroupResponse {
-	bin, err := encode(assignment, nil)
+	bin, err := Encode(assignment, nil)
 	if err != nil {
 		panic(fmt.Sprintf("error encoding member assignment: %v", err))
 	}
@@ -1374,10 +1374,10 @@ func NewMockHeartbeatResponse(t TestReporter) *MockHeartbeatResponse {
 	return &MockHeartbeatResponse{t: t}
 }
 
-func (m *MockHeartbeatResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockHeartbeatResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*HeartbeatRequest)
 	resp := &HeartbeatResponse{
-		Version: req.version(),
+		Version: req.APIVersion(),
 	}
 	return resp
 }
@@ -1422,10 +1422,10 @@ func (m *MockDescribeLogDirsResponse) SetLogDirs(logDirPath string, topicPartiti
 	return m
 }
 
-func (m *MockDescribeLogDirsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockDescribeLogDirsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*DescribeLogDirsRequest)
 	resp := &DescribeLogDirsResponse{
-		Version: req.version(),
+		Version: req.APIVersion(),
 		LogDirs: m.logDirs,
 	}
 	return resp
@@ -1459,7 +1459,7 @@ func (m *MockApiVersionsResponse) SetApiKeys(apiKeys []ApiVersionsResponseKey) *
 	return m
 }
 
-func (m *MockApiVersionsResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockApiVersionsResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*ApiVersionsRequest)
 	res := &ApiVersionsResponse{
 		Version: req.Version,
@@ -1497,7 +1497,7 @@ func (m *MockInitProducerIDResponse) SetError(err KError) *MockInitProducerIDRes
 	return m
 }
 
-func (m *MockInitProducerIDResponse) For(reqBody versionedDecoder) encoderWithHeader {
+func (m *MockInitProducerIDResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	req := reqBody.(*InitProducerIDRequest)
 	res := &InitProducerIDResponse{
 		Version:       req.Version,

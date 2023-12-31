@@ -14,13 +14,13 @@ type AlterConfigsResource struct {
 	ConfigEntries map[string]*string
 }
 
-func (a *AlterConfigsRequest) encode(pe packetEncoder) error {
+func (a *AlterConfigsRequest) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(a.Resources)); err != nil {
 		return err
 	}
 
 	for _, r := range a.Resources {
-		if err := r.encode(pe); err != nil {
+		if err := r.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -29,7 +29,7 @@ func (a *AlterConfigsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AlterConfigsRequest) decode(pd packetDecoder, version int16) error {
+func (a *AlterConfigsRequest) Decode(pd packetDecoder, version int16) error {
 	resourceCount, err := pd.getArrayLength()
 	if err != nil {
 		return err
@@ -38,7 +38,7 @@ func (a *AlterConfigsRequest) decode(pd packetDecoder, version int16) error {
 	a.Resources = make([]*AlterConfigsResource, resourceCount)
 	for i := range a.Resources {
 		r := &AlterConfigsResource{}
-		err = r.decode(pd, version)
+		err = r.Decode(pd, version)
 		if err != nil {
 			return err
 		}
@@ -55,7 +55,7 @@ func (a *AlterConfigsRequest) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (a *AlterConfigsResource) encode(pe packetEncoder) error {
+func (a *AlterConfigsResource) Encode(pe packetEncoder) error {
 	pe.putInt8(int8(a.Type))
 
 	if err := pe.putString(a.Name); err != nil {
@@ -77,7 +77,7 @@ func (a *AlterConfigsResource) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AlterConfigsResource) decode(pd packetDecoder, version int16) error {
+func (a *AlterConfigsResource) Decode(pd packetDecoder, version int16) error {
 	t, err := pd.getInt8()
 	if err != nil {
 		return err
@@ -110,23 +110,23 @@ func (a *AlterConfigsResource) decode(pd packetDecoder, version int16) error {
 	return err
 }
 
-func (a *AlterConfigsRequest) key() int16 {
+func (a *AlterConfigsRequest) APIKey() int16 {
 	return 33
 }
 
-func (a *AlterConfigsRequest) version() int16 {
+func (a *AlterConfigsRequest) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *AlterConfigsRequest) headerVersion() int16 {
+func (a *AlterConfigsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (a *AlterConfigsRequest) isValidVersion() bool {
+func (a *AlterConfigsRequest) IsValidVersion() bool {
 	return a.Version >= 0 && a.Version <= 1
 }
 
-func (a *AlterConfigsRequest) requiredVersion() KafkaVersion {
+func (a *AlterConfigsRequest) RequiredVersion() KafkaVersion {
 	switch a.Version {
 	case 1:
 		return V2_0_0_0

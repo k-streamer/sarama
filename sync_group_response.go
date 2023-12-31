@@ -17,11 +17,11 @@ type SyncGroupResponse struct {
 
 func (r *SyncGroupResponse) GetMemberAssignment() (*ConsumerGroupMemberAssignment, error) {
 	assignment := new(ConsumerGroupMemberAssignment)
-	err := decode(r.MemberAssignment, assignment, nil)
+	err := Decode(r.MemberAssignment, assignment, nil)
 	return assignment, err
 }
 
-func (r *SyncGroupResponse) encode(pe packetEncoder) error {
+func (r *SyncGroupResponse) Encode(pe packetEncoder) error {
 	if r.Version >= 1 {
 		pe.putInt32(r.ThrottleTime)
 	}
@@ -29,7 +29,7 @@ func (r *SyncGroupResponse) encode(pe packetEncoder) error {
 	return pe.putBytes(r.MemberAssignment)
 }
 
-func (r *SyncGroupResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *SyncGroupResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.Version >= 1 {
 		if r.ThrottleTime, err = pd.getInt32(); err != nil {
@@ -47,23 +47,23 @@ func (r *SyncGroupResponse) decode(pd packetDecoder, version int16) (err error) 
 	return
 }
 
-func (r *SyncGroupResponse) key() int16 {
+func (r *SyncGroupResponse) APIKey() int16 {
 	return 14
 }
 
-func (r *SyncGroupResponse) version() int16 {
+func (r *SyncGroupResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *SyncGroupResponse) headerVersion() int16 {
+func (r *SyncGroupResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *SyncGroupResponse) isValidVersion() bool {
+func (r *SyncGroupResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 3
 }
 
-func (r *SyncGroupResponse) requiredVersion() KafkaVersion {
+func (r *SyncGroupResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 3:
 		return V2_3_0_0

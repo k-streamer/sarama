@@ -8,7 +8,7 @@ type DeleteTopicsRequest struct {
 	Timeout time.Duration
 }
 
-func (d *DeleteTopicsRequest) encode(pe packetEncoder) error {
+func (d *DeleteTopicsRequest) Encode(pe packetEncoder) error {
 	if err := pe.putStringArray(d.Topics); err != nil {
 		return err
 	}
@@ -17,7 +17,7 @@ func (d *DeleteTopicsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (d *DeleteTopicsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (d *DeleteTopicsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	if d.Topics, err = pd.getStringArray(); err != nil {
 		return err
 	}
@@ -30,23 +30,23 @@ func (d *DeleteTopicsRequest) decode(pd packetDecoder, version int16) (err error
 	return nil
 }
 
-func (d *DeleteTopicsRequest) key() int16 {
+func (d *DeleteTopicsRequest) APIKey() int16 {
 	return 20
 }
 
-func (d *DeleteTopicsRequest) version() int16 {
+func (d *DeleteTopicsRequest) APIVersion() int16 {
 	return d.Version
 }
 
-func (d *DeleteTopicsRequest) headerVersion() int16 {
+func (d *DeleteTopicsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (d *DeleteTopicsRequest) isValidVersion() bool {
+func (d *DeleteTopicsRequest) IsValidVersion() bool {
 	return d.Version >= 0 && d.Version <= 3
 }
 
-func (d *DeleteTopicsRequest) requiredVersion() KafkaVersion {
+func (d *DeleteTopicsRequest) RequiredVersion() KafkaVersion {
 	switch d.Version {
 	case 3:
 		return V2_1_0_0

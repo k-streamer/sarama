@@ -64,7 +64,7 @@ type ConfigSynonym struct {
 	Source      ConfigSource
 }
 
-func (r *DescribeConfigsResponse) encode(pe packetEncoder) (err error) {
+func (r *DescribeConfigsResponse) Encode(pe packetEncoder) (err error) {
 	pe.putInt32(int32(r.ThrottleTime / time.Millisecond))
 	if err = pe.putArrayLength(len(r.Resources)); err != nil {
 		return err
@@ -79,7 +79,7 @@ func (r *DescribeConfigsResponse) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *DescribeConfigsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *DescribeConfigsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	throttleTime, err := pd.getInt32()
 	if err != nil {
@@ -95,7 +95,7 @@ func (r *DescribeConfigsResponse) decode(pd packetDecoder, version int16) (err e
 	r.Resources = make([]*ResourceResponse, n)
 	for i := 0; i < n; i++ {
 		rr := &ResourceResponse{}
-		if err := rr.decode(pd, version); err != nil {
+		if err := rr.Decode(pd, version); err != nil {
 			return err
 		}
 		r.Resources[i] = rr
@@ -104,23 +104,23 @@ func (r *DescribeConfigsResponse) decode(pd packetDecoder, version int16) (err e
 	return nil
 }
 
-func (r *DescribeConfigsResponse) key() int16 {
+func (r *DescribeConfigsResponse) APIKey() int16 {
 	return 32
 }
 
-func (r *DescribeConfigsResponse) version() int16 {
+func (r *DescribeConfigsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DescribeConfigsResponse) headerVersion() int16 {
+func (r *DescribeConfigsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *DescribeConfigsResponse) isValidVersion() bool {
+func (r *DescribeConfigsResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 2
 }
 
-func (r *DescribeConfigsResponse) requiredVersion() KafkaVersion {
+func (r *DescribeConfigsResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 2:
 		return V2_0_0_0
@@ -162,7 +162,7 @@ func (r *ResourceResponse) encode(pe packetEncoder, version int16) (err error) {
 	return nil
 }
 
-func (r *ResourceResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *ResourceResponse) Decode(pd packetDecoder, version int16) (err error) {
 	ec, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -195,7 +195,7 @@ func (r *ResourceResponse) decode(pd packetDecoder, version int16) (err error) {
 	r.Configs = make([]*ConfigEntry, n)
 	for i := 0; i < n; i++ {
 		c := &ConfigEntry{}
-		if err := c.decode(pd, version); err != nil {
+		if err := c.Decode(pd, version); err != nil {
 			return err
 		}
 		r.Configs[i] = c
@@ -235,7 +235,7 @@ func (r *ConfigEntry) encode(pe packetEncoder, version int16) (err error) {
 }
 
 // https://cwiki.apache.org/confluence/display/KAFKA/KIP-226+-+Dynamic+Broker+Configuration
-func (r *ConfigEntry) decode(pd packetDecoder, version int16) (err error) {
+func (r *ConfigEntry) Decode(pd packetDecoder, version int16) (err error) {
 	if version == 0 {
 		r.Source = SourceUnknown
 	}
@@ -290,7 +290,7 @@ func (r *ConfigEntry) decode(pd packetDecoder, version int16) (err error) {
 
 		for i := 0; i < n; i++ {
 			s := &ConfigSynonym{}
-			if err := s.decode(pd, version); err != nil {
+			if err := s.Decode(pd, version); err != nil {
 				return err
 			}
 			r.Synonyms[i] = s
@@ -315,7 +315,7 @@ func (c *ConfigSynonym) encode(pe packetEncoder, version int16) (err error) {
 	return nil
 }
 
-func (c *ConfigSynonym) decode(pd packetDecoder, version int16) error {
+func (c *ConfigSynonym) Decode(pd packetDecoder, version int16) error {
 	name, err := pd.getString()
 	if err != nil {
 		return err

@@ -54,10 +54,10 @@ func safeAsyncClose(b *Broker) {
 	})
 }
 
-// Encoder is a simple interface for any type that can be encoded as an array of bytes
+// UtilEncoder is a simple interface for any type that can be encoded as an array of bytes
 // in order to be sent as the key or value of a Kafka message. Length() is provided as an
 // optimization, and must return the same as len() on the result of Encode().
-type Encoder interface {
+type UtilEncoder interface {
 	Encode() ([]byte, error)
 	Length() int
 }
@@ -65,7 +65,7 @@ type Encoder interface {
 // make strings and byte slices encodable for convenience so they can be used as keys
 // and/or values in kafka messages
 
-// StringEncoder implements the Encoder interface for Go strings so that they can be used
+// StringEncoder implements the UtilEncoder interface for Go strings so that they can be used
 // as the Key or Value in a ProducerMessage.
 type StringEncoder string
 
@@ -77,7 +77,7 @@ func (s StringEncoder) Length() int {
 	return len(s)
 }
 
-// ByteEncoder implements the Encoder interface for Go byte slices so that they can be used
+// ByteEncoder implements the UtilEncoder interface for Go byte slices so that they can be used
 // as the Key or Value in a ProducerMessage.
 type ByteEncoder []byte
 

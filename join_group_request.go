@@ -7,7 +7,7 @@ type GroupProtocol struct {
 	Metadata []byte
 }
 
-func (p *GroupProtocol) decode(pd packetDecoder) (err error) {
+func (p *GroupProtocol) Decode(pd packetDecoder) (err error) {
 	p.Name, err = pd.getString()
 	if err != nil {
 		return err
@@ -16,7 +16,7 @@ func (p *GroupProtocol) decode(pd packetDecoder) (err error) {
 	return err
 }
 
-func (p *GroupProtocol) encode(pe packetEncoder) (err error) {
+func (p *GroupProtocol) Encode(pe packetEncoder) (err error) {
 	if err := pe.putString(p.Name); err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ type JoinGroupRequest struct {
 	OrderedGroupProtocols []*GroupProtocol
 }
 
-func (r *JoinGroupRequest) encode(pe packetEncoder) error {
+func (r *JoinGroupRequest) Encode(pe packetEncoder) error {
 	if err := pe.putString(r.GroupId); err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (r *JoinGroupRequest) encode(pe packetEncoder) error {
 			return err
 		}
 		for _, protocol := range r.OrderedGroupProtocols {
-			if err := protocol.encode(pe); err != nil {
+			if err := protocol.Encode(pe); err != nil {
 				return err
 			}
 		}
@@ -104,7 +104,7 @@ func (r *JoinGroupRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *JoinGroupRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *JoinGroupRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 
 	if r.GroupId, err = pd.getString(); err != nil {
@@ -146,7 +146,7 @@ func (r *JoinGroupRequest) decode(pd packetDecoder, version int16) (err error) {
 	r.GroupProtocols = make(map[string][]byte)
 	for i := 0; i < n; i++ {
 		protocol := &GroupProtocol{}
-		if err := protocol.decode(pd); err != nil {
+		if err := protocol.Decode(pd); err != nil {
 			return err
 		}
 		r.GroupProtocols[protocol.Name] = protocol.Metadata
@@ -156,23 +156,23 @@ func (r *JoinGroupRequest) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (r *JoinGroupRequest) key() int16 {
+func (r *JoinGroupRequest) APIKey() int16 {
 	return 11
 }
 
-func (r *JoinGroupRequest) version() int16 {
+func (r *JoinGroupRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *JoinGroupRequest) headerVersion() int16 {
+func (r *JoinGroupRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *JoinGroupRequest) isValidVersion() bool {
+func (r *JoinGroupRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 5
 }
 
-func (r *JoinGroupRequest) requiredVersion() KafkaVersion {
+func (r *JoinGroupRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 5:
 		return V2_3_0_0
@@ -199,7 +199,7 @@ func (r *JoinGroupRequest) AddGroupProtocol(name string, metadata []byte) {
 }
 
 func (r *JoinGroupRequest) AddGroupProtocolMetadata(name string, metadata *ConsumerGroupMemberMetadata) error {
-	bin, err := encode(metadata, nil)
+	bin, err := Encode(metadata, nil)
 	if err != nil {
 		return err
 	}

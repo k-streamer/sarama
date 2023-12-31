@@ -70,5 +70,5 @@ type pushDecoder interface {
 // During push, dynamicPushDecoder.decode() method will be called instead of reserveLength()
 type dynamicPushDecoder interface {
 	pushDecoder
-	decoder
+	Decoder
 }

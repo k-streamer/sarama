@@ -11,7 +11,7 @@ type DescribeAclsResponse struct {
 	ResourceAcls []*ResourceAcls
 }
 
-func (d *DescribeAclsResponse) encode(pe packetEncoder) error {
+func (d *DescribeAclsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(d.ThrottleTime / time.Millisecond))
 	pe.putInt16(int16(d.Err))
 
@@ -32,7 +32,7 @@ func (d *DescribeAclsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (d *DescribeAclsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (d *DescribeAclsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (d *DescribeAclsResponse) decode(pd packetDecoder, version int16) (err erro
 
 	for i := 0; i < n; i++ {
 		d.ResourceAcls[i] = new(ResourceAcls)
-		if err := d.ResourceAcls[i].decode(pd, version); err != nil {
+		if err := d.ResourceAcls[i].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -69,23 +69,23 @@ func (d *DescribeAclsResponse) decode(pd packetDecoder, version int16) (err erro
 	return nil
 }
 
-func (d *DescribeAclsResponse) key() int16 {
+func (d *DescribeAclsResponse) APIKey() int16 {
 	return 29
 }
 
-func (d *DescribeAclsResponse) version() int16 {
+func (d *DescribeAclsResponse) APIVersion() int16 {
 	return d.Version
 }
 
-func (d *DescribeAclsResponse) headerVersion() int16 {
+func (d *DescribeAclsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (d *DescribeAclsResponse) isValidVersion() bool {
+func (d *DescribeAclsResponse) IsValidVersion() bool {
 	return d.Version >= 0 && d.Version <= 1
 }
 
-func (d *DescribeAclsResponse) requiredVersion() KafkaVersion {
+func (d *DescribeAclsResponse) RequiredVersion() KafkaVersion {
 	switch d.Version {
 	case 1:
 		return V2_0_0_0

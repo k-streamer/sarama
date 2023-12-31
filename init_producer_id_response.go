@@ -10,7 +10,7 @@ type InitProducerIDResponse struct {
 	ProducerEpoch int16
 }
 
-func (i *InitProducerIDResponse) encode(pe packetEncoder) error {
+func (i *InitProducerIDResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(i.ThrottleTime / time.Millisecond))
 	pe.putInt16(int16(i.Err))
 	pe.putInt64(i.ProducerID)
@@ -23,7 +23,7 @@ func (i *InitProducerIDResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (i *InitProducerIDResponse) decode(pd packetDecoder, version int16) (err error) {
+func (i *InitProducerIDResponse) Decode(pd packetDecoder, version int16) (err error) {
 	i.Version = version
 	throttleTime, err := pd.getInt32()
 	if err != nil {
@@ -54,26 +54,26 @@ func (i *InitProducerIDResponse) decode(pd packetDecoder, version int16) (err er
 	return nil
 }
 
-func (i *InitProducerIDResponse) key() int16 {
+func (i *InitProducerIDResponse) APIKey() int16 {
 	return 22
 }
 
-func (i *InitProducerIDResponse) version() int16 {
+func (i *InitProducerIDResponse) APIVersion() int16 {
 	return i.Version
 }
 
-func (i *InitProducerIDResponse) headerVersion() int16 {
+func (i *InitProducerIDResponse) HeaderVersion() int16 {
 	if i.Version >= 2 {
 		return 1
 	}
 	return 0
 }
 
-func (i *InitProducerIDResponse) isValidVersion() bool {
+func (i *InitProducerIDResponse) IsValidVersion() bool {
 	return i.Version >= 0 && i.Version <= 4
 }
 
-func (i *InitProducerIDResponse) requiredVersion() KafkaVersion {
+func (i *InitProducerIDResponse) RequiredVersion() KafkaVersion {
 	switch i.Version {
 	case 4:
 		return V2_7_0_0

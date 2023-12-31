@@ -11,7 +11,7 @@ type ApiVersionsRequest struct {
 	ClientSoftwareVersion string
 }
 
-func (r *ApiVersionsRequest) encode(pe packetEncoder) (err error) {
+func (r *ApiVersionsRequest) Encode(pe packetEncoder) (err error) {
 	if r.Version >= 3 {
 		if err := pe.putCompactString(r.ClientSoftwareName); err != nil {
 			return err
@@ -25,7 +25,7 @@ func (r *ApiVersionsRequest) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *ApiVersionsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *ApiVersionsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.Version >= 3 {
 		if r.ClientSoftwareName, err = pd.getCompactString(); err != nil {
@@ -42,26 +42,26 @@ func (r *ApiVersionsRequest) decode(pd packetDecoder, version int16) (err error)
 	return nil
 }
 
-func (r *ApiVersionsRequest) key() int16 {
+func (r *ApiVersionsRequest) APIKey() int16 {
 	return 18
 }
 
-func (r *ApiVersionsRequest) version() int16 {
+func (r *ApiVersionsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *ApiVersionsRequest) headerVersion() int16 {
+func (r *ApiVersionsRequest) HeaderVersion() int16 {
 	if r.Version >= 3 {
 		return 2
 	}
 	return 1
 }
 
-func (r *ApiVersionsRequest) isValidVersion() bool {
+func (r *ApiVersionsRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 3
 }
 
-func (r *ApiVersionsRequest) requiredVersion() KafkaVersion {
+func (r *ApiVersionsRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 3:
 		return V2_4_0_0

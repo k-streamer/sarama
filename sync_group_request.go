@@ -19,7 +19,7 @@ func (a *SyncGroupRequestAssignment) encode(pe packetEncoder, version int16) (er
 	return nil
 }
 
-func (a *SyncGroupRequestAssignment) decode(pd packetDecoder, version int16) (err error) {
+func (a *SyncGroupRequestAssignment) Decode(pd packetDecoder, version int16) (err error) {
 	if a.MemberId, err = pd.getString(); err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ type SyncGroupRequest struct {
 	GroupAssignments []SyncGroupRequestAssignment
 }
 
-func (s *SyncGroupRequest) encode(pe packetEncoder) (err error) {
+func (s *SyncGroupRequest) Encode(pe packetEncoder) (err error) {
 	if err := pe.putString(s.GroupId); err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (s *SyncGroupRequest) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (s *SyncGroupRequest) decode(pd packetDecoder, version int16) (err error) {
+func (s *SyncGroupRequest) Decode(pd packetDecoder, version int16) (err error) {
 	s.Version = version
 	if s.GroupId, err = pd.getString(); err != nil {
 		return err
@@ -101,7 +101,7 @@ func (s *SyncGroupRequest) decode(pd packetDecoder, version int16) (err error) {
 		s.GroupAssignments = make([]SyncGroupRequestAssignment, numAssignments)
 		for i := 0; i < numAssignments; i++ {
 			var block SyncGroupRequestAssignment
-			if err := block.decode(pd, s.Version); err != nil {
+			if err := block.Decode(pd, s.Version); err != nil {
 				return err
 			}
 			s.GroupAssignments[i] = block
@@ -111,23 +111,23 @@ func (s *SyncGroupRequest) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (r *SyncGroupRequest) key() int16 {
+func (r *SyncGroupRequest) APIKey() int16 {
 	return 14
 }
 
-func (r *SyncGroupRequest) version() int16 {
+func (r *SyncGroupRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *SyncGroupRequest) headerVersion() int16 {
+func (r *SyncGroupRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *SyncGroupRequest) isValidVersion() bool {
+func (r *SyncGroupRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 3
 }
 
-func (r *SyncGroupRequest) requiredVersion() KafkaVersion {
+func (r *SyncGroupRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 3:
 		return V2_3_0_0
@@ -153,7 +153,7 @@ func (r *SyncGroupRequest) AddGroupAssignmentMember(
 	memberId string,
 	memberAssignment *ConsumerGroupMemberAssignment,
 ) error {
-	bin, err := encode(memberAssignment, nil)
+	bin, err := Encode(memberAssignment, nil)
 	if err != nil {
 		return err
 	}

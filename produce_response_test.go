@@ -143,7 +143,7 @@ func TestProduceResponseEncodeInvalidTimestamp(t *testing.T) {
 		Timestamp: time.Unix(0, 0).Add(-1 * time.Millisecond),
 	}
 	response.ThrottleTime = 100 * time.Millisecond
-	_, err := encode(&response, nil)
+	_, err := Encode(&response, nil)
 	if err == nil {
 		t.Error("Expecting error, got nil")
 	}

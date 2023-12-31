@@ -47,7 +47,7 @@ type UserScramCredentialsResponseInfo struct {
 	Iterations int32
 }
 
-func (r *DescribeUserScramCredentialsResponse) encode(pe packetEncoder) error {
+func (r *DescribeUserScramCredentialsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(r.ThrottleTime / time.Millisecond))
 
 	pe.putInt16(int16(r.ErrorCode))
@@ -79,7 +79,7 @@ func (r *DescribeUserScramCredentialsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DescribeUserScramCredentialsResponse) decode(pd packetDecoder, version int16) error {
+func (r *DescribeUserScramCredentialsResponse) Decode(pd packetDecoder, version int16) error {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -151,23 +151,23 @@ func (r *DescribeUserScramCredentialsResponse) decode(pd packetDecoder, version 
 	return nil
 }
 
-func (r *DescribeUserScramCredentialsResponse) key() int16 {
+func (r *DescribeUserScramCredentialsResponse) APIKey() int16 {
 	return 50
 }
 
-func (r *DescribeUserScramCredentialsResponse) version() int16 {
+func (r *DescribeUserScramCredentialsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DescribeUserScramCredentialsResponse) headerVersion() int16 {
+func (r *DescribeUserScramCredentialsResponse) HeaderVersion() int16 {
 	return 2
 }
 
-func (r *DescribeUserScramCredentialsResponse) isValidVersion() bool {
+func (r *DescribeUserScramCredentialsResponse) IsValidVersion() bool {
 	return r.Version == 0
 }
 
-func (r *DescribeUserScramCredentialsResponse) requiredVersion() KafkaVersion {
+func (r *DescribeUserScramCredentialsResponse) RequiredVersion() KafkaVersion {
 	return V2_7_0_0
 }
 

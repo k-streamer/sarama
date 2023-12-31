@@ -9,7 +9,7 @@ type CreatePartitionsRequest struct {
 	ValidateOnly    bool
 }
 
-func (c *CreatePartitionsRequest) encode(pe packetEncoder) error {
+func (c *CreatePartitionsRequest) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(c.TopicPartitions)); err != nil {
 		return err
 	}
@@ -18,7 +18,7 @@ func (c *CreatePartitionsRequest) encode(pe packetEncoder) error {
 		if err := pe.putString(topic); err != nil {
 			return err
 		}
-		if err := partition.encode(pe); err != nil {
+		if err := partition.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -30,7 +30,7 @@ func (c *CreatePartitionsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (c *CreatePartitionsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (c *CreatePartitionsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	n, err := pd.getArrayLength()
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (c *CreatePartitionsRequest) decode(pd packetDecoder, version int16) (err e
 			return err
 		}
 		c.TopicPartitions[topic] = new(TopicPartition)
-		if err := c.TopicPartitions[topic].decode(pd, version); err != nil {
+		if err := c.TopicPartitions[topic].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -60,23 +60,23 @@ func (c *CreatePartitionsRequest) decode(pd packetDecoder, version int16) (err e
 	return nil
 }
 
-func (r *CreatePartitionsRequest) key() int16 {
+func (r *CreatePartitionsRequest) APIKey() int16 {
 	return 37
 }
 
-func (r *CreatePartitionsRequest) version() int16 {
+func (r *CreatePartitionsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *CreatePartitionsRequest) headerVersion() int16 {
+func (r *CreatePartitionsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *CreatePartitionsRequest) isValidVersion() bool {
+func (r *CreatePartitionsRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 1
 }
 
-func (r *CreatePartitionsRequest) requiredVersion() KafkaVersion {
+func (r *CreatePartitionsRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 1:
 		return V2_0_0_0
@@ -92,7 +92,7 @@ type TopicPartition struct {
 	Assignment [][]int32
 }
 
-func (t *TopicPartition) encode(pe packetEncoder) error {
+func (t *TopicPartition) Encode(pe packetEncoder) error {
 	pe.putInt32(t.Count)
 
 	if len(t.Assignment) == 0 {
@@ -113,7 +113,7 @@ func (t *TopicPartition) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (t *TopicPartition) decode(pd packetDecoder, version int16) (err error) {
+func (t *TopicPartition) Decode(pd packetDecoder, version int16) (err error) {
 	if t.Count, err = pd.getInt32(); err != nil {
 		return err
 	}

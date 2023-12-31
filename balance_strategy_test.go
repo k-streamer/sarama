@@ -2303,7 +2303,7 @@ func encodeSubscriberPlan(t *testing.T, assignments map[string][]int32) []byte {
 }
 
 func encodeSubscriberPlanWithGeneration(t *testing.T, assignments map[string][]int32, generation int32) []byte {
-	userDataBytes, err := encode(&StickyAssignorUserDataV1{
+	userDataBytes, err := Encode(&StickyAssignorUserDataV1{
 		Topics:     assignments,
 		Generation: generation,
 	}, nil)
@@ -2315,7 +2315,7 @@ func encodeSubscriberPlanWithGeneration(t *testing.T, assignments map[string][]i
 }
 
 func encodeSubscriberPlanWithGenerationForBenchmark(b *testing.B, assignments map[string][]int32, generation int32) []byte {
-	userDataBytes, err := encode(&StickyAssignorUserDataV1{
+	userDataBytes, err := Encode(&StickyAssignorUserDataV1{
 		Topics:     assignments,
 		Generation: generation,
 	}, nil)
@@ -2327,7 +2327,7 @@ func encodeSubscriberPlanWithGenerationForBenchmark(b *testing.B, assignments ma
 }
 
 func encodeSubscriberPlanWithOldSchema(t *testing.T, assignments map[string][]int32) []byte {
-	userDataBytes, err := encode(&StickyAssignorUserDataV0{
+	userDataBytes, err := Encode(&StickyAssignorUserDataV0{
 		Topics: assignments,
 	}, nil)
 	if err != nil {

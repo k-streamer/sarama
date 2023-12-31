@@ -9,7 +9,7 @@ type CreateAclsResponse struct {
 	AclCreationResponses []*AclCreationResponse
 }
 
-func (c *CreateAclsResponse) encode(pe packetEncoder) error {
+func (c *CreateAclsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(c.ThrottleTime / time.Millisecond))
 
 	if err := pe.putArrayLength(len(c.AclCreationResponses)); err != nil {
@@ -17,7 +17,7 @@ func (c *CreateAclsResponse) encode(pe packetEncoder) error {
 	}
 
 	for _, aclCreationResponse := range c.AclCreationResponses {
-		if err := aclCreationResponse.encode(pe); err != nil {
+		if err := aclCreationResponse.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -25,7 +25,7 @@ func (c *CreateAclsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (c *CreateAclsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (c *CreateAclsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (c *CreateAclsResponse) decode(pd packetDecoder, version int16) (err error)
 	c.AclCreationResponses = make([]*AclCreationResponse, n)
 	for i := 0; i < n; i++ {
 		c.AclCreationResponses[i] = new(AclCreationResponse)
-		if err := c.AclCreationResponses[i].decode(pd, version); err != nil {
+		if err := c.AclCreationResponses[i].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -48,23 +48,23 @@ func (c *CreateAclsResponse) decode(pd packetDecoder, version int16) (err error)
 	return nil
 }
 
-func (c *CreateAclsResponse) key() int16 {
+func (c *CreateAclsResponse) APIKey() int16 {
 	return 30
 }
 
-func (c *CreateAclsResponse) version() int16 {
+func (c *CreateAclsResponse) APIVersion() int16 {
 	return c.Version
 }
 
-func (c *CreateAclsResponse) headerVersion() int16 {
+func (c *CreateAclsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (c *CreateAclsResponse) isValidVersion() bool {
+func (c *CreateAclsResponse) IsValidVersion() bool {
 	return c.Version >= 0 && c.Version <= 1
 }
 
-func (c *CreateAclsResponse) requiredVersion() KafkaVersion {
+func (c *CreateAclsResponse) RequiredVersion() KafkaVersion {
 	switch c.Version {
 	case 1:
 		return V2_0_0_0
@@ -83,7 +83,7 @@ type AclCreationResponse struct {
 	ErrMsg *string
 }
 
-func (a *AclCreationResponse) encode(pe packetEncoder) error {
+func (a *AclCreationResponse) Encode(pe packetEncoder) error {
 	pe.putInt16(int16(a.Err))
 
 	if err := pe.putNullableString(a.ErrMsg); err != nil {
@@ -93,7 +93,7 @@ func (a *AclCreationResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AclCreationResponse) decode(pd packetDecoder, version int16) (err error) {
+func (a *AclCreationResponse) Decode(pd packetDecoder, version int16) (err error) {
 	kerr, err := pd.getInt16()
 	if err != nil {
 		return err

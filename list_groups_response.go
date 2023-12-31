@@ -12,7 +12,7 @@ type GroupData struct {
 	GroupState string // version 4 or later
 }
 
-func (r *ListGroupsResponse) encode(pe packetEncoder) error {
+func (r *ListGroupsResponse) Encode(pe packetEncoder) error {
 	if r.Version >= 1 {
 		pe.putInt32(r.ThrottleTime)
 	}
@@ -53,7 +53,7 @@ func (r *ListGroupsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *ListGroupsResponse) decode(pd packetDecoder, version int16) error {
+func (r *ListGroupsResponse) Decode(pd packetDecoder, version int16) error {
 	r.Version = version
 	if r.Version >= 1 {
 		var err error
@@ -136,26 +136,26 @@ func (r *ListGroupsResponse) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (r *ListGroupsResponse) key() int16 {
+func (r *ListGroupsResponse) APIKey() int16 {
 	return 16
 }
 
-func (r *ListGroupsResponse) version() int16 {
+func (r *ListGroupsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *ListGroupsResponse) headerVersion() int16 {
+func (r *ListGroupsResponse) HeaderVersion() int16 {
 	if r.Version >= 3 {
 		return 1
 	}
 	return 0
 }
 
-func (r *ListGroupsResponse) isValidVersion() bool {
+func (r *ListGroupsResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 4
 }
 
-func (r *ListGroupsResponse) requiredVersion() KafkaVersion {
+func (r *ListGroupsResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 4:
 		return V2_6_0_0

@@ -21,7 +21,7 @@ const (
 
 type GSSApiHandlerFunc func([]byte) []byte
 
-type requestHandlerFunc func(req *request) (res encoderWithHeader)
+type requestHandlerFunc func(req *Request) (res EncoderWithHeader)
 
 // RequestNotifierFunc is invoked when a mock broker processes a request successfully
 // and will provides the number of bytes read and written.
@@ -56,7 +56,7 @@ type MockBroker struct {
 	port          int32
 	closing       chan none
 	stopper       chan none
-	expectations  chan encoderWithHeader
+	expectations  chan EncoderWithHeader
 	listener      net.Listener
 	t             TestReporter
 	latency       time.Duration
@@ -69,8 +69,8 @@ type MockBroker struct {
 
 // RequestResponse represents a Request/Response pair processed by MockBroker.
 type RequestResponse struct {
-	Request  protocolBody
-	Response encoder
+	Request  ProtocolBody
+	Response Encoder
 }
 
 // SetLatency makes broker pause for the specified period every time before
@@ -88,13 +88,13 @@ func (b *MockBroker) SetHandlerByMap(handlerMap map[string]MockResponse) {
 	for k, v := range handlerMap {
 		fnMap[k] = v
 	}
-	b.setHandler(func(req *request) (res encoderWithHeader) {
-		reqTypeName := reflect.TypeOf(req.body).Elem().Name()
+	b.setHandler(func(req *Request) (res EncoderWithHeader) {
+		reqTypeName := reflect.TypeOf(req.Body).Elem().Name()
 		mockResponse := fnMap[reqTypeName]
 		if mockResponse == nil {
 			return nil
 		}
-		return mockResponse.For(req.body)
+		return mockResponse.For(req.Body)
 	})
 }
 
@@ -106,8 +106,8 @@ func (b *MockBroker) SetHandlerFuncByMap(handlerMap map[string]requestHandlerFun
 	for k, v := range handlerMap {
 		fnMap[k] = v
 	}
-	b.setHandler(func(req *request) (res encoderWithHeader) {
-		reqTypeName := reflect.TypeOf(req.body).Elem().Name()
+	b.setHandler(func(req *Request) (res EncoderWithHeader) {
+		reqTypeName := reflect.TypeOf(req.Body).Elem().Name()
 		return fnMap[reqTypeName](req)
 	})
 }
@@ -284,7 +284,7 @@ func (b *MockBroker) handleRequests(conn io.ReadWriteCloser, idx int, wg *sync.W
 
 			b.lock.Lock()
 			res := b.handler(req)
-			b.history = append(b.history, RequestResponse{req.body, res})
+			b.history = append(b.history, RequestResponse{req.Body, res})
 			b.lock.Unlock()
 
 			if res == nil {
@@ -293,12 +293,12 @@ func (b *MockBroker) handleRequests(conn io.ReadWriteCloser, idx int, wg *sync.W
 			}
 			Logger.Printf(
 				"*** mockbroker/%d/%d: replied to %T with %T\n-> %s\n-> %s",
-				b.brokerID, idx, req.body, res,
-				s.Sprintf("%#v", req.body),
+				b.brokerID, idx, req.Body, res,
+				s.Sprintf("%#v", req.Body),
 				s.Sprintf("%#v", res),
 			)
 
-			encodedRes, err := encode(res, nil)
+			encodedRes, err := Encode(res, nil)
 			if err != nil {
 				b.serverError(fmt.Errorf("failed to encode %T - %w", res, err))
 				break
@@ -312,7 +312,7 @@ func (b *MockBroker) handleRequests(conn io.ReadWriteCloser, idx int, wg *sync.W
 				continue
 			}
 
-			resHeader := b.encodeHeader(res.headerVersion(), req.correlationID, uint32(len(encodedRes)))
+			resHeader := b.encodeHeader(res.HeaderVersion(), req.CorrelationID, uint32(len(encodedRes)))
 			if _, err = conn.Write(resHeader); err != nil {
 				b.serverError(err)
 				break
@@ -366,7 +366,7 @@ func (b *MockBroker) encodeHeader(headerVersion int16, correlationId int32, payl
 	return resHeader
 }
 
-func (b *MockBroker) defaultRequestHandler(req *request) (res encoderWithHeader) {
+func (b *MockBroker) defaultRequestHandler(req *Request) (res EncoderWithHeader) {
 	select {
 	case res, ok := <-b.expectations:
 		if !ok {
@@ -426,7 +426,7 @@ func NewMockBrokerListener(t TestReporter, brokerID int32, listener net.Listener
 		stopper:      make(chan none),
 		t:            t,
 		brokerID:     brokerID,
-		expectations: make(chan encoderWithHeader, 512),
+		expectations: make(chan EncoderWithHeader, 512),
 		listener:     listener,
 	}
 	broker.handler = broker.defaultRequestHandler
@@ -447,6 +447,6 @@ func NewMockBrokerListener(t TestReporter, brokerID int32, listener net.Listener
 	return broker
 }
 
-func (b *MockBroker) Returns(e encoderWithHeader) {
+func (b *MockBroker) Returns(e EncoderWithHeader) {
 	b.expectations <- e
 }

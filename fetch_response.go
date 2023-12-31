@@ -20,7 +20,7 @@ type AbortedTransaction struct {
 	FirstOffset int64
 }
 
-func (t *AbortedTransaction) decode(pd packetDecoder) (err error) {
+func (t *AbortedTransaction) Decode(pd packetDecoder) (err error) {
 	if t.ProducerID, err = pd.getInt64(); err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (t *AbortedTransaction) decode(pd packetDecoder) (err error) {
 	return nil
 }
 
-func (t *AbortedTransaction) encode(pe packetEncoder) (err error) {
+func (t *AbortedTransaction) Encode(pe packetEncoder) (err error) {
 	pe.putInt64(t.ProducerID)
 	pe.putInt64(t.FirstOffset)
 
@@ -64,7 +64,7 @@ type FetchResponseBlock struct {
 	Records *Records // deprecated: use FetchResponseBlock.RecordsSet
 }
 
-func (b *FetchResponseBlock) decode(pd packetDecoder, version int16) (err error) {
+func (b *FetchResponseBlock) Decode(pd packetDecoder, version int16) (err error) {
 	metricRegistry := pd.metricRegistry()
 	var sizeMetric metrics.Histogram
 	if metricRegistry != nil {
@@ -106,7 +106,7 @@ func (b *FetchResponseBlock) decode(pd packetDecoder, version int16) (err error)
 
 		for i := 0; i < numTransact; i++ {
 			transact := new(AbortedTransaction)
-			if err = transact.decode(pd); err != nil {
+			if err = transact.Decode(pd); err != nil {
 				return err
 			}
 			b.AbortedTransactions[i] = transact
@@ -139,7 +139,7 @@ func (b *FetchResponseBlock) decode(pd packetDecoder, version int16) (err error)
 
 	for recordsDecoder.remaining() > 0 {
 		records := &Records{}
-		if err := records.decode(recordsDecoder); err != nil {
+		if err := records.Decode(recordsDecoder); err != nil {
 			// If we have at least one decoded records, this is not an error
 			if errors.Is(err, ErrInsufficientData) {
 				if len(b.RecordsSet) == 0 {
@@ -229,7 +229,7 @@ func (b *FetchResponseBlock) encode(pe packetEncoder, version int16) (err error)
 			return err
 		}
 		for _, transact := range b.AbortedTransactions {
-			if err = transact.encode(pe); err != nil {
+			if err = transact.Encode(pe); err != nil {
 				return err
 			}
 		}
@@ -241,7 +241,7 @@ func (b *FetchResponseBlock) encode(pe packetEncoder, version int16) (err error)
 
 	pe.push(&lengthField{})
 	for _, records := range b.RecordsSet {
-		err = records.encode(pe)
+		err = records.Encode(pe)
 		if err != nil {
 			return err
 		}
@@ -278,7 +278,7 @@ type FetchResponse struct {
 	Timestamp     time.Time
 }
 
-func (r *FetchResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *FetchResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 
 	if r.Version >= 1 {
@@ -326,7 +326,7 @@ func (r *FetchResponse) decode(pd packetDecoder, version int16) (err error) {
 			}
 
 			block := new(FetchResponseBlock)
-			err = block.decode(pd, version)
+			err = block.Decode(pd, version)
 			if err != nil {
 				return err
 			}
@@ -337,7 +337,7 @@ func (r *FetchResponse) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (r *FetchResponse) encode(pe packetEncoder) (err error) {
+func (r *FetchResponse) Encode(pe packetEncoder) (err error) {
 	if r.Version >= 1 {
 		pe.putInt32(int32(r.ThrottleTime / time.Millisecond))
 	}
@@ -374,23 +374,23 @@ func (r *FetchResponse) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *FetchResponse) key() int16 {
+func (r *FetchResponse) APIKey() int16 {
 	return 1
 }
 
-func (r *FetchResponse) version() int16 {
+func (r *FetchResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *FetchResponse) headerVersion() int16 {
+func (r *FetchResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *FetchResponse) isValidVersion() bool {
+func (r *FetchResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 11
 }
 
-func (r *FetchResponse) requiredVersion() KafkaVersion {
+func (r *FetchResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 11:
 		return V2_3_0_0
@@ -468,7 +468,7 @@ func (r *FetchResponse) getOrCreateBlock(topic string, partition int32) *FetchRe
 	return frb
 }
 
-func encodeKV(key, value Encoder) ([]byte, []byte) {
+func encodeKV(key, value UtilEncoder) ([]byte, []byte) {
 	var kb []byte
 	var vb []byte
 	if key != nil {
@@ -481,7 +481,7 @@ func encodeKV(key, value Encoder) ([]byte, []byte) {
 	return kb, vb
 }
 
-func (r *FetchResponse) AddMessageWithTimestamp(topic string, partition int32, key, value Encoder, offset int64, timestamp time.Time, version int8) {
+func (r *FetchResponse) AddMessageWithTimestamp(topic string, partition int32, key, value UtilEncoder, offset int64, timestamp time.Time, version int8) {
 	frb := r.getOrCreateBlock(topic, partition)
 	kb, vb := encodeKV(key, value)
 	if r.LogAppendTime {
@@ -497,7 +497,7 @@ func (r *FetchResponse) AddMessageWithTimestamp(topic string, partition int32, k
 	set.Messages = append(set.Messages, msgBlock)
 }
 
-func (r *FetchResponse) AddRecordWithTimestamp(topic string, partition int32, key, value Encoder, offset int64, timestamp time.Time) {
+func (r *FetchResponse) AddRecordWithTimestamp(topic string, partition int32, key, value UtilEncoder, offset int64, timestamp time.Time) {
 	frb := r.getOrCreateBlock(topic, partition)
 	kb, vb := encodeKV(key, value)
 	if len(frb.RecordsSet) == 0 {
@@ -512,7 +512,7 @@ func (r *FetchResponse) AddRecordWithTimestamp(topic string, partition int32, ke
 // AddRecordBatchWithTimestamp is similar to AddRecordWithTimestamp
 // But instead of appending 1 record to a batch, it append a new batch containing 1 record to the fetchResponse
 // Since transaction are handled on batch level (the whole batch is either committed or aborted), use this to test transactions
-func (r *FetchResponse) AddRecordBatchWithTimestamp(topic string, partition int32, key, value Encoder, offset int64, producerID int64, isTransactional bool, timestamp time.Time) {
+func (r *FetchResponse) AddRecordBatchWithTimestamp(topic string, partition int32, key, value UtilEncoder, offset int64, producerID int64, isTransactional bool, timestamp time.Time) {
 	frb := r.getOrCreateBlock(topic, partition)
 	kb, vb := encodeKV(key, value)
 
@@ -559,24 +559,24 @@ func (r *FetchResponse) AddControlRecordWithTimestamp(topic string, partition in
 		Version: 0,
 		Type:    recordType,
 	}
-	crKey := &realEncoder{raw: make([]byte, 4)}
-	crValue := &realEncoder{raw: make([]byte, 6)}
+	crKey := &RealEncoder{Raw: make([]byte, 4)}
+	crValue := &RealEncoder{Raw: make([]byte, 6)}
 	crAbort.encode(crKey, crValue)
-	rec := &Record{Key: ByteEncoder(crKey.raw), Value: ByteEncoder(crValue.raw), OffsetDelta: 0, TimestampDelta: timestamp.Sub(batch.FirstTimestamp)}
+	rec := &Record{Key: ByteEncoder(crKey.Raw), Value: ByteEncoder(crValue.Raw), OffsetDelta: 0, TimestampDelta: timestamp.Sub(batch.FirstTimestamp)}
 	batch.addRecord(rec)
 
 	frb.RecordsSet = append(frb.RecordsSet, &records)
 }
 
-func (r *FetchResponse) AddMessage(topic string, partition int32, key, value Encoder, offset int64) {
+func (r *FetchResponse) AddMessage(topic string, partition int32, key, value UtilEncoder, offset int64) {
 	r.AddMessageWithTimestamp(topic, partition, key, value, offset, time.Time{}, 0)
 }
 
-func (r *FetchResponse) AddRecord(topic string, partition int32, key, value Encoder, offset int64) {
+func (r *FetchResponse) AddRecord(topic string, partition int32, key, value UtilEncoder, offset int64) {
 	r.AddRecordWithTimestamp(topic, partition, key, value, offset, time.Time{})
 }
 
-func (r *FetchResponse) AddRecordBatch(topic string, partition int32, key, value Encoder, offset int64, producerID int64, isTransactional bool) {
+func (r *FetchResponse) AddRecordBatch(topic string, partition int32, key, value UtilEncoder, offset int64, producerID int64, isTransactional bool) {
 	r.AddRecordBatchWithTimestamp(topic, partition, key, value, offset, producerID, isTransactional, time.Time{})
 }
 

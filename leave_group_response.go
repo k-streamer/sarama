@@ -14,7 +14,7 @@ type LeaveGroupResponse struct {
 	Members      []MemberResponse
 }
 
-func (r *LeaveGroupResponse) encode(pe packetEncoder) error {
+func (r *LeaveGroupResponse) Encode(pe packetEncoder) error {
 	if r.Version >= 1 {
 		pe.putInt32(r.ThrottleTime)
 	}
@@ -36,7 +36,7 @@ func (r *LeaveGroupResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *LeaveGroupResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *LeaveGroupResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.Version >= 1 {
 		if r.ThrottleTime, err = pd.getInt32(); err != nil {
@@ -73,23 +73,23 @@ func (r *LeaveGroupResponse) decode(pd packetDecoder, version int16) (err error)
 	return nil
 }
 
-func (r *LeaveGroupResponse) key() int16 {
+func (r *LeaveGroupResponse) APIKey() int16 {
 	return 13
 }
 
-func (r *LeaveGroupResponse) version() int16 {
+func (r *LeaveGroupResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *LeaveGroupResponse) headerVersion() int16 {
+func (r *LeaveGroupResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *LeaveGroupResponse) isValidVersion() bool {
+func (r *LeaveGroupResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 3
 }
 
-func (r *LeaveGroupResponse) requiredVersion() KafkaVersion {
+func (r *LeaveGroupResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 3:
 		return V2_4_0_0

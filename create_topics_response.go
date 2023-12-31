@@ -15,7 +15,7 @@ type CreateTopicsResponse struct {
 	TopicErrors map[string]*TopicError
 }
 
-func (c *CreateTopicsResponse) encode(pe packetEncoder) error {
+func (c *CreateTopicsResponse) Encode(pe packetEncoder) error {
 	if c.Version >= 2 {
 		pe.putInt32(int32(c.ThrottleTime / time.Millisecond))
 	}
@@ -35,7 +35,7 @@ func (c *CreateTopicsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (c *CreateTopicsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (c *CreateTopicsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	c.Version = version
 
 	if version >= 2 {
@@ -58,7 +58,7 @@ func (c *CreateTopicsResponse) decode(pd packetDecoder, version int16) (err erro
 			return err
 		}
 		c.TopicErrors[topic] = new(TopicError)
-		if err := c.TopicErrors[topic].decode(pd, version); err != nil {
+		if err := c.TopicErrors[topic].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -66,23 +66,23 @@ func (c *CreateTopicsResponse) decode(pd packetDecoder, version int16) (err erro
 	return nil
 }
 
-func (c *CreateTopicsResponse) key() int16 {
+func (c *CreateTopicsResponse) APIKey() int16 {
 	return 19
 }
 
-func (c *CreateTopicsResponse) version() int16 {
+func (c *CreateTopicsResponse) APIVersion() int16 {
 	return c.Version
 }
 
-func (c *CreateTopicsResponse) headerVersion() int16 {
+func (c *CreateTopicsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (c *CreateTopicsResponse) isValidVersion() bool {
+func (c *CreateTopicsResponse) IsValidVersion() bool {
 	return c.Version >= 0 && c.Version <= 3
 }
 
-func (c *CreateTopicsResponse) requiredVersion() KafkaVersion {
+func (c *CreateTopicsResponse) RequiredVersion() KafkaVersion {
 	switch c.Version {
 	case 3:
 		return V2_0_0_0
@@ -130,7 +130,7 @@ func (t *TopicError) encode(pe packetEncoder, version int16) error {
 	return nil
 }
 
-func (t *TopicError) decode(pd packetDecoder, version int16) (err error) {
+func (t *TopicError) Decode(pd packetDecoder, version int16) (err error) {
 	kErr, err := pd.getInt16()
 	if err != nil {
 		return err

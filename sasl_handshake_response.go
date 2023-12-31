@@ -6,12 +6,12 @@ type SaslHandshakeResponse struct {
 	EnabledMechanisms []string
 }
 
-func (r *SaslHandshakeResponse) encode(pe packetEncoder) error {
+func (r *SaslHandshakeResponse) Encode(pe packetEncoder) error {
 	pe.putInt16(int16(r.Err))
 	return pe.putStringArray(r.EnabledMechanisms)
 }
 
-func (r *SaslHandshakeResponse) decode(pd packetDecoder, version int16) error {
+func (r *SaslHandshakeResponse) Decode(pd packetDecoder, version int16) error {
 	kerr, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -26,23 +26,23 @@ func (r *SaslHandshakeResponse) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (r *SaslHandshakeResponse) key() int16 {
+func (r *SaslHandshakeResponse) APIKey() int16 {
 	return 17
 }
 
-func (r *SaslHandshakeResponse) version() int16 {
+func (r *SaslHandshakeResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *SaslHandshakeResponse) headerVersion() int16 {
+func (r *SaslHandshakeResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *SaslHandshakeResponse) isValidVersion() bool {
+func (r *SaslHandshakeResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 1
 }
 
-func (r *SaslHandshakeResponse) requiredVersion() KafkaVersion {
+func (r *SaslHandshakeResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 1:
 		return V1_0_0_0

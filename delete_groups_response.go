@@ -10,7 +10,7 @@ type DeleteGroupsResponse struct {
 	GroupErrorCodes map[string]KError
 }
 
-func (r *DeleteGroupsResponse) encode(pe packetEncoder) error {
+func (r *DeleteGroupsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(r.ThrottleTime / time.Millisecond))
 
 	if err := pe.putArrayLength(len(r.GroupErrorCodes)); err != nil {
@@ -26,7 +26,7 @@ func (r *DeleteGroupsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DeleteGroupsResponse) decode(pd packetDecoder, version int16) error {
+func (r *DeleteGroupsResponse) Decode(pd packetDecoder, version int16) error {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -58,23 +58,23 @@ func (r *DeleteGroupsResponse) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (r *DeleteGroupsResponse) key() int16 {
+func (r *DeleteGroupsResponse) APIKey() int16 {
 	return 42
 }
 
-func (r *DeleteGroupsResponse) version() int16 {
+func (r *DeleteGroupsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DeleteGroupsResponse) headerVersion() int16 {
+func (r *DeleteGroupsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *DeleteGroupsResponse) isValidVersion() bool {
+func (r *DeleteGroupsResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 1
 }
 
-func (r *DeleteGroupsResponse) requiredVersion() KafkaVersion {
+func (r *DeleteGroupsResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 1:
 		return V2_0_0_0

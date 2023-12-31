@@ -8,7 +8,7 @@ type EndTxnRequest struct {
 	TransactionResult bool
 }
 
-func (a *EndTxnRequest) encode(pe packetEncoder) error {
+func (a *EndTxnRequest) Encode(pe packetEncoder) error {
 	if err := pe.putString(a.TransactionalID); err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func (a *EndTxnRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *EndTxnRequest) decode(pd packetDecoder, version int16) (err error) {
+func (a *EndTxnRequest) Decode(pd packetDecoder, version int16) (err error) {
 	if a.TransactionalID, err = pd.getString(); err != nil {
 		return err
 	}
@@ -38,23 +38,23 @@ func (a *EndTxnRequest) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (a *EndTxnRequest) key() int16 {
+func (a *EndTxnRequest) APIKey() int16 {
 	return 26
 }
 
-func (a *EndTxnRequest) version() int16 {
+func (a *EndTxnRequest) APIVersion() int16 {
 	return a.Version
 }
 
-func (r *EndTxnRequest) headerVersion() int16 {
+func (r *EndTxnRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (a *EndTxnRequest) isValidVersion() bool {
+func (a *EndTxnRequest) IsValidVersion() bool {
 	return a.Version >= 0 && a.Version <= 2
 }
 
-func (a *EndTxnRequest) requiredVersion() KafkaVersion {
+func (a *EndTxnRequest) RequiredVersion() KafkaVersion {
 	switch a.Version {
 	case 2:
 		return V2_7_0_0

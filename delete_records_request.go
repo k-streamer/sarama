@@ -18,7 +18,7 @@ type DeleteRecordsRequest struct {
 	Timeout time.Duration
 }
 
-func (d *DeleteRecordsRequest) encode(pe packetEncoder) error {
+func (d *DeleteRecordsRequest) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(d.Topics)); err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func (d *DeleteRecordsRequest) encode(pe packetEncoder) error {
 		if err := pe.putString(topic); err != nil {
 			return err
 		}
-		if err := d.Topics[topic].encode(pe); err != nil {
+		if err := d.Topics[topic].Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -40,7 +40,7 @@ func (d *DeleteRecordsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (d *DeleteRecordsRequest) decode(pd packetDecoder, version int16) error {
+func (d *DeleteRecordsRequest) Decode(pd packetDecoder, version int16) error {
 	n, err := pd.getArrayLength()
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (d *DeleteRecordsRequest) decode(pd packetDecoder, version int16) error {
 				return err
 			}
 			details := new(DeleteRecordsRequestTopic)
-			if err = details.decode(pd, version); err != nil {
+			if err = details.Decode(pd, version); err != nil {
 				return err
 			}
 			d.Topics[topic] = details
@@ -70,23 +70,23 @@ func (d *DeleteRecordsRequest) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (d *DeleteRecordsRequest) key() int16 {
+func (d *DeleteRecordsRequest) APIKey() int16 {
 	return 21
 }
 
-func (d *DeleteRecordsRequest) version() int16 {
+func (d *DeleteRecordsRequest) APIVersion() int16 {
 	return d.Version
 }
 
-func (d *DeleteRecordsRequest) headerVersion() int16 {
+func (d *DeleteRecordsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (d *DeleteRecordsRequest) isValidVersion() bool {
+func (d *DeleteRecordsRequest) IsValidVersion() bool {
 	return d.Version >= 0 && d.Version <= 1
 }
 
-func (d *DeleteRecordsRequest) requiredVersion() KafkaVersion {
+func (d *DeleteRecordsRequest) RequiredVersion() KafkaVersion {
 	switch d.Version {
 	case 1:
 		return V2_0_0_0
@@ -99,7 +99,7 @@ type DeleteRecordsRequestTopic struct {
 	PartitionOffsets map[int32]int64 // partition => offset
 }
 
-func (t *DeleteRecordsRequestTopic) encode(pe packetEncoder) error {
+func (t *DeleteRecordsRequestTopic) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(t.PartitionOffsets)); err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (t *DeleteRecordsRequestTopic) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (t *DeleteRecordsRequestTopic) decode(pd packetDecoder, version int16) error {
+func (t *DeleteRecordsRequestTopic) Decode(pd packetDecoder, version int16) error {
 	n, err := pd.getArrayLength()
 	if err != nil {
 		return err

@@ -35,7 +35,7 @@ type QuotaEntityComponent struct {
 	Name       string
 }
 
-func (d *DescribeClientQuotasResponse) encode(pe packetEncoder) error {
+func (d *DescribeClientQuotasResponse) Encode(pe packetEncoder) error {
 	// ThrottleTime
 	pe.putInt32(int32(d.ThrottleTime / time.Millisecond))
 
@@ -52,7 +52,7 @@ func (d *DescribeClientQuotasResponse) encode(pe packetEncoder) error {
 		return err
 	}
 	for _, e := range d.Entries {
-		if err := e.encode(pe); err != nil {
+		if err := e.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -60,7 +60,7 @@ func (d *DescribeClientQuotasResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (d *DescribeClientQuotasResponse) decode(pd packetDecoder, version int16) error {
+func (d *DescribeClientQuotasResponse) Decode(pd packetDecoder, version int16) error {
 	// ThrottleTime
 	throttleTime, err := pd.getInt32()
 	if err != nil {
@@ -91,7 +91,7 @@ func (d *DescribeClientQuotasResponse) decode(pd packetDecoder, version int16) e
 		d.Entries = make([]DescribeClientQuotasEntry, entryCount)
 		for i := range d.Entries {
 			e := DescribeClientQuotasEntry{}
-			if err = e.decode(pd, version); err != nil {
+			if err = e.Decode(pd, version); err != nil {
 				return err
 			}
 			d.Entries[i] = e
@@ -103,13 +103,13 @@ func (d *DescribeClientQuotasResponse) decode(pd packetDecoder, version int16) e
 	return nil
 }
 
-func (d *DescribeClientQuotasEntry) encode(pe packetEncoder) error {
+func (d *DescribeClientQuotasEntry) Encode(pe packetEncoder) error {
 	// Entity
 	if err := pe.putArrayLength(len(d.Entity)); err != nil {
 		return err
 	}
 	for _, e := range d.Entity {
-		if err := e.encode(pe); err != nil {
+		if err := e.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -130,7 +130,7 @@ func (d *DescribeClientQuotasEntry) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (d *DescribeClientQuotasEntry) decode(pd packetDecoder, version int16) error {
+func (d *DescribeClientQuotasEntry) Decode(pd packetDecoder, version int16) error {
 	// Entity
 	componentCount, err := pd.getArrayLength()
 	if err != nil {
@@ -140,7 +140,7 @@ func (d *DescribeClientQuotasEntry) decode(pd packetDecoder, version int16) erro
 		d.Entity = make([]QuotaEntityComponent, componentCount)
 		for i := 0; i < componentCount; i++ {
 			component := QuotaEntityComponent{}
-			if err := component.decode(pd, version); err != nil {
+			if err := component.Decode(pd, version); err != nil {
 				return err
 			}
 			d.Entity[i] = component
@@ -176,7 +176,7 @@ func (d *DescribeClientQuotasEntry) decode(pd packetDecoder, version int16) erro
 	return nil
 }
 
-func (c *QuotaEntityComponent) encode(pe packetEncoder) error {
+func (c *QuotaEntityComponent) Encode(pe packetEncoder) error {
 	// entity_type
 	if err := pe.putString(string(c.EntityType)); err != nil {
 		return err
@@ -195,7 +195,7 @@ func (c *QuotaEntityComponent) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (c *QuotaEntityComponent) decode(pd packetDecoder, version int16) error {
+func (c *QuotaEntityComponent) Decode(pd packetDecoder, version int16) error {
 	// entity_type
 	entityType, err := pd.getString()
 	if err != nil {
@@ -219,23 +219,23 @@ func (c *QuotaEntityComponent) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (d *DescribeClientQuotasResponse) key() int16 {
+func (d *DescribeClientQuotasResponse) APIKey() int16 {
 	return 48
 }
 
-func (d *DescribeClientQuotasResponse) version() int16 {
+func (d *DescribeClientQuotasResponse) APIVersion() int16 {
 	return d.Version
 }
 
-func (d *DescribeClientQuotasResponse) headerVersion() int16 {
+func (d *DescribeClientQuotasResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (d *DescribeClientQuotasResponse) isValidVersion() bool {
+func (d *DescribeClientQuotasResponse) IsValidVersion() bool {
 	return d.Version == 0
 }
 
-func (d *DescribeClientQuotasResponse) requiredVersion() KafkaVersion {
+func (d *DescribeClientQuotasResponse) RequiredVersion() KafkaVersion {
 	return V2_6_0_0
 }
 

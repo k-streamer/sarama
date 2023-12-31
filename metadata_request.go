@@ -45,7 +45,7 @@ func NewMetadataRequest(version KafkaVersion, topics []string) *MetadataRequest 
 	return m
 }
 
-func (r *MetadataRequest) encode(pe packetEncoder) (err error) {
+func (r *MetadataRequest) Encode(pe packetEncoder) (err error) {
 	if r.Version < 0 || r.Version > 10 {
 		return PacketEncodingError{"invalid or unsupported MetadataRequest version field"}
 	}
@@ -105,7 +105,7 @@ func (r *MetadataRequest) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *MetadataRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *MetadataRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.Version < 9 {
 		size, err := pd.getInt32()
@@ -193,26 +193,26 @@ func (r *MetadataRequest) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (r *MetadataRequest) key() int16 {
+func (r *MetadataRequest) APIKey() int16 {
 	return 3
 }
 
-func (r *MetadataRequest) version() int16 {
+func (r *MetadataRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *MetadataRequest) headerVersion() int16 {
+func (r *MetadataRequest) HeaderVersion() int16 {
 	if r.Version >= 9 {
 		return 2
 	}
 	return 1
 }
 
-func (r *MetadataRequest) isValidVersion() bool {
+func (r *MetadataRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 10
 }
 
-func (r *MetadataRequest) requiredVersion() KafkaVersion {
+func (r *MetadataRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 10:
 		return V2_8_0_0

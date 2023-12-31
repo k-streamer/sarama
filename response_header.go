@@ -7,7 +7,7 @@ type responseHeader struct {
 	correlationID int32
 }
 
-func (r *responseHeader) decode(pd packetDecoder, version int16) (err error) {
+func (r *responseHeader) Decode(pd packetDecoder, version int16) (err error) {
 	r.length, err = pd.getInt32()
 	if err != nil {
 		return err

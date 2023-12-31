@@ -16,17 +16,17 @@ func (msb *MessageBlock) Messages() []*MessageBlock {
 	return []*MessageBlock{msb}
 }
 
-func (msb *MessageBlock) encode(pe packetEncoder) error {
+func (msb *MessageBlock) Encode(pe packetEncoder) error {
 	pe.putInt64(msb.Offset)
 	pe.push(&lengthField{})
-	err := msb.Msg.encode(pe)
+	err := msb.Msg.Encode(pe)
 	if err != nil {
 		return err
 	}
 	return pe.pop()
 }
 
-func (msb *MessageBlock) decode(pd packetDecoder) (err error) {
+func (msb *MessageBlock) Decode(pd packetDecoder) (err error) {
 	if msb.Offset, err = pd.getInt64(); err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (msb *MessageBlock) decode(pd packetDecoder) (err error) {
 	}
 
 	msb.Msg = new(Message)
-	if err = msb.Msg.decode(pd); err != nil {
+	if err = msb.Msg.Decode(pd); err != nil {
 		return err
 	}
 
@@ -56,9 +56,9 @@ type MessageSet struct {
 	Messages               []*MessageBlock
 }
 
-func (ms *MessageSet) encode(pe packetEncoder) error {
+func (ms *MessageSet) Encode(pe packetEncoder) error {
 	for i := range ms.Messages {
-		err := ms.Messages[i].encode(pe)
+		err := ms.Messages[i].Encode(pe)
 		if err != nil {
 			return err
 		}
@@ -66,7 +66,7 @@ func (ms *MessageSet) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (ms *MessageSet) decode(pd packetDecoder) (err error) {
+func (ms *MessageSet) Decode(pd packetDecoder) (err error) {
 	ms.Messages = nil
 
 	for pd.remaining() > 0 {
@@ -84,7 +84,7 @@ func (ms *MessageSet) decode(pd packetDecoder) (err error) {
 		}
 
 		msb := new(MessageBlock)
-		err = msb.decode(pd)
+		err = msb.Decode(pd)
 		if err == nil {
 			ms.Messages = append(ms.Messages, msb)
 		} else if errors.Is(err, ErrInsufficientData) {

@@ -12,7 +12,7 @@ type LeaveGroupRequest struct {
 	Members  []MemberIdentity // Added in Version 3
 }
 
-func (r *LeaveGroupRequest) encode(pe packetEncoder) error {
+func (r *LeaveGroupRequest) Encode(pe packetEncoder) error {
 	if err := pe.putString(r.GroupId); err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (r *LeaveGroupRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *LeaveGroupRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *LeaveGroupRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.GroupId, err = pd.getString(); err != nil {
 		return
@@ -69,23 +69,23 @@ func (r *LeaveGroupRequest) decode(pd packetDecoder, version int16) (err error) 
 	return nil
 }
 
-func (r *LeaveGroupRequest) key() int16 {
+func (r *LeaveGroupRequest) APIKey() int16 {
 	return 13
 }
 
-func (r *LeaveGroupRequest) version() int16 {
+func (r *LeaveGroupRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *LeaveGroupRequest) headerVersion() int16 {
+func (r *LeaveGroupRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *LeaveGroupRequest) isValidVersion() bool {
+func (r *LeaveGroupRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 3
 }
 
-func (r *LeaveGroupRequest) requiredVersion() KafkaVersion {
+func (r *LeaveGroupRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 3:
 		return V2_4_0_0

@@ -17,14 +17,14 @@ type RecordHeader struct {
 	Value []byte
 }
 
-func (h *RecordHeader) encode(pe packetEncoder) error {
+func (h *RecordHeader) Encode(pe packetEncoder) error {
 	if err := pe.putVarintBytes(h.Key); err != nil {
 		return err
 	}
 	return pe.putVarintBytes(h.Value)
 }
 
-func (h *RecordHeader) decode(pd packetDecoder) (err error) {
+func (h *RecordHeader) Decode(pd packetDecoder) (err error) {
 	if h.Key, err = pd.getVarintBytes(); err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ type Record struct {
 	length         varintLengthField
 }
 
-func (r *Record) encode(pe packetEncoder) error {
+func (r *Record) Encode(pe packetEncoder) error {
 	pe.push(&r.length)
 	pe.putInt8(r.Attributes)
 	pe.putVarint(int64(r.TimestampDelta / time.Millisecond))
@@ -61,7 +61,7 @@ func (r *Record) encode(pe packetEncoder) error {
 	pe.putVarint(int64(len(r.Headers)))
 
 	for _, h := range r.Headers {
-		if err := h.encode(pe); err != nil {
+		if err := h.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -69,7 +69,7 @@ func (r *Record) encode(pe packetEncoder) error {
 	return pe.pop()
 }
 
-func (r *Record) decode(pd packetDecoder) (err error) {
+func (r *Record) Decode(pd packetDecoder) (err error) {
 	if err = pd.push(&r.length); err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func (r *Record) decode(pd packetDecoder) (err error) {
 	}
 	for i := int64(0); i < numHeaders; i++ {
 		hdr := new(RecordHeader)
-		if err := hdr.decode(pd); err != nil {
+		if err := hdr.Decode(pd); err != nil {
 			return err
 		}
 		r.Headers[i] = hdr

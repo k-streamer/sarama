@@ -38,11 +38,11 @@ type mockEncoder struct {
 	bytes []byte
 }
 
-func (m mockEncoder) encode(pe packetEncoder) error {
+func (m mockEncoder) Encode(pe packetEncoder) error {
 	return pe.putRawBytes(m.bytes)
 }
 
-func (m mockEncoder) headerVersion() int16 {
+func (m mockEncoder) HeaderVersion() int16 {
 	return 0
 }
 
@@ -1449,7 +1449,7 @@ func Test_handleThrottledResponse(t *testing.T) {
 	throttleTime := time.Duration(throttleTimeMs) * time.Millisecond
 	tests := []struct {
 		name        string
-		response    protocolBody
+		response    ProtocolBody
 		expectDelay bool
 	}{
 		{

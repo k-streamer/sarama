@@ -9,7 +9,7 @@ type IncrementalAlterConfigsResponse struct {
 	Resources    []*AlterConfigsResourceResponse
 }
 
-func (a *IncrementalAlterConfigsResponse) encode(pe packetEncoder) error {
+func (a *IncrementalAlterConfigsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(a.ThrottleTime / time.Millisecond))
 
 	if err := pe.putArrayLength(len(a.Resources)); err != nil {
@@ -17,7 +17,7 @@ func (a *IncrementalAlterConfigsResponse) encode(pe packetEncoder) error {
 	}
 
 	for _, v := range a.Resources {
-		if err := v.encode(pe); err != nil {
+		if err := v.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -25,7 +25,7 @@ func (a *IncrementalAlterConfigsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *IncrementalAlterConfigsResponse) decode(pd packetDecoder, version int16) error {
+func (a *IncrementalAlterConfigsResponse) Decode(pd packetDecoder, version int16) error {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (a *IncrementalAlterConfigsResponse) decode(pd packetDecoder, version int16
 	for i := range a.Resources {
 		a.Resources[i] = new(AlterConfigsResourceResponse)
 
-		if err := a.Resources[i].decode(pd, version); err != nil {
+		if err := a.Resources[i].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -50,23 +50,23 @@ func (a *IncrementalAlterConfigsResponse) decode(pd packetDecoder, version int16
 	return nil
 }
 
-func (a *IncrementalAlterConfigsResponse) key() int16 {
+func (a *IncrementalAlterConfigsResponse) APIKey() int16 {
 	return 44
 }
 
-func (a *IncrementalAlterConfigsResponse) version() int16 {
+func (a *IncrementalAlterConfigsResponse) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *IncrementalAlterConfigsResponse) headerVersion() int16 {
+func (a *IncrementalAlterConfigsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (a *IncrementalAlterConfigsResponse) isValidVersion() bool {
+func (a *IncrementalAlterConfigsResponse) IsValidVersion() bool {
 	return a.Version == 0
 }
 
-func (a *IncrementalAlterConfigsResponse) requiredVersion() KafkaVersion {
+func (a *IncrementalAlterConfigsResponse) RequiredVersion() KafkaVersion {
 	return V2_3_0_0
 }
 

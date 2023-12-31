@@ -29,7 +29,7 @@ func (a *ApiVersionsResponseKey) encode(pe packetEncoder, version int16) (err er
 	return nil
 }
 
-func (a *ApiVersionsResponseKey) decode(pd packetDecoder, version int16) (err error) {
+func (a *ApiVersionsResponseKey) Decode(pd packetDecoder, version int16) (err error) {
 	a.Version = version
 	if a.ApiKey, err = pd.getInt16(); err != nil {
 		return err
@@ -63,7 +63,7 @@ type ApiVersionsResponse struct {
 	ThrottleTimeMs int32
 }
 
-func (r *ApiVersionsResponse) encode(pe packetEncoder) (err error) {
+func (r *ApiVersionsResponse) Encode(pe packetEncoder) (err error) {
 	pe.putInt16(r.ErrorCode)
 
 	if r.Version >= 3 {
@@ -90,7 +90,7 @@ func (r *ApiVersionsResponse) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *ApiVersionsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *ApiVersionsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.ErrorCode, err = pd.getInt16(); err != nil {
 		return err
@@ -111,7 +111,7 @@ func (r *ApiVersionsResponse) decode(pd packetDecoder, version int16) (err error
 	r.ApiKeys = make([]ApiVersionsResponseKey, numApiKeys)
 	for i := 0; i < numApiKeys; i++ {
 		var block ApiVersionsResponseKey
-		if err = block.decode(pd, r.Version); err != nil {
+		if err = block.Decode(pd, r.Version); err != nil {
 			return err
 		}
 		r.ApiKeys[i] = block
@@ -132,25 +132,25 @@ func (r *ApiVersionsResponse) decode(pd packetDecoder, version int16) (err error
 	return nil
 }
 
-func (r *ApiVersionsResponse) key() int16 {
+func (r *ApiVersionsResponse) APIKey() int16 {
 	return 18
 }
 
-func (r *ApiVersionsResponse) version() int16 {
+func (r *ApiVersionsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *ApiVersionsResponse) headerVersion() int16 {
+func (r *ApiVersionsResponse) HeaderVersion() int16 {
 	// ApiVersionsResponse always includes a v0 header.
 	// See KIP-511 for details
 	return 0
 }
 
-func (r *ApiVersionsResponse) isValidVersion() bool {
+func (r *ApiVersionsResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 3
 }
 
-func (r *ApiVersionsResponse) requiredVersion() KafkaVersion {
+func (r *ApiVersionsResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 3:
 		return V2_4_0_0

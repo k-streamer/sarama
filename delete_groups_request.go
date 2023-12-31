@@ -5,32 +5,32 @@ type DeleteGroupsRequest struct {
 	Groups  []string
 }
 
-func (r *DeleteGroupsRequest) encode(pe packetEncoder) error {
+func (r *DeleteGroupsRequest) Encode(pe packetEncoder) error {
 	return pe.putStringArray(r.Groups)
 }
 
-func (r *DeleteGroupsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *DeleteGroupsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Groups, err = pd.getStringArray()
 	return
 }
 
-func (r *DeleteGroupsRequest) key() int16 {
+func (r *DeleteGroupsRequest) APIKey() int16 {
 	return 42
 }
 
-func (r *DeleteGroupsRequest) version() int16 {
+func (r *DeleteGroupsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DeleteGroupsRequest) headerVersion() int16 {
+func (r *DeleteGroupsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *DeleteGroupsRequest) isValidVersion() bool {
+func (r *DeleteGroupsRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 1
 }
 
-func (r *DeleteGroupsRequest) requiredVersion() KafkaVersion {
+func (r *DeleteGroupsRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 1:
 		return V2_0_0_0

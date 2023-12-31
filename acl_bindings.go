@@ -25,7 +25,7 @@ func (r *Resource) encode(pe packetEncoder, version int16) error {
 	return nil
 }
 
-func (r *Resource) decode(pd packetDecoder, version int16) (err error) {
+func (r *Resource) Decode(pd packetDecoder, version int16) (err error) {
 	resourceType, err := pd.getInt8()
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ type Acl struct {
 	PermissionType AclPermissionType
 }
 
-func (a *Acl) encode(pe packetEncoder) error {
+func (a *Acl) Encode(pe packetEncoder) error {
 	if err := pe.putString(a.Principal); err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func (a *Acl) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *Acl) decode(pd packetDecoder, version int16) (err error) {
+func (a *Acl) Decode(pd packetDecoder, version int16) (err error) {
 	if a.Principal, err = pd.getString(); err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (r *ResourceAcls) encode(pe packetEncoder, version int16) error {
 		return err
 	}
 	for _, acl := range r.Acls {
-		if err := acl.encode(pe); err != nil {
+		if err := acl.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -116,8 +116,8 @@ func (r *ResourceAcls) encode(pe packetEncoder, version int16) error {
 	return nil
 }
 
-func (r *ResourceAcls) decode(pd packetDecoder, version int16) error {
-	if err := r.Resource.decode(pd, version); err != nil {
+func (r *ResourceAcls) Decode(pd packetDecoder, version int16) error {
+	if err := r.Resource.Decode(pd, version); err != nil {
 		return err
 	}
 
@@ -129,7 +129,7 @@ func (r *ResourceAcls) decode(pd packetDecoder, version int16) error {
 	r.Acls = make([]*Acl, n)
 	for i := 0; i < n; i++ {
 		r.Acls[i] = new(Acl)
-		if err := r.Acls[i].decode(pd, version); err != nil {
+		if err := r.Acls[i].Decode(pd, version); err != nil {
 			return err
 		}
 	}

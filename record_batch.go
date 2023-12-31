@@ -10,19 +10,19 @@ const recordBatchOverhead = 49
 
 type recordsArray []*Record
 
-func (e recordsArray) encode(pe packetEncoder) error {
+func (e recordsArray) Encode(pe packetEncoder) error {
 	for _, r := range e {
-		if err := r.encode(pe); err != nil {
+		if err := r.Encode(pe); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (e recordsArray) decode(pd packetDecoder) error {
+func (e recordsArray) Decode(pd packetDecoder) error {
 	records := make([]Record, len(e))
 	for i := range e {
-		if err := records[i].decode(pd); err != nil {
+		if err := records[i].Decode(pd); err != nil {
 			return err
 		}
 		e[i] = &records[i]
@@ -56,7 +56,7 @@ func (b *RecordBatch) LastOffset() int64 {
 	return b.FirstOffset + int64(b.LastOffsetDelta)
 }
 
-func (b *RecordBatch) encode(pe packetEncoder) error {
+func (b *RecordBatch) Encode(pe packetEncoder) error {
 	if b.Version != 2 {
 		return PacketEncodingError{fmt.Sprintf("unsupported record batch version (%d)", b.Version)}
 	}
@@ -68,11 +68,11 @@ func (b *RecordBatch) encode(pe packetEncoder) error {
 	pe.putInt16(b.computeAttributes())
 	pe.putInt32(b.LastOffsetDelta)
 
-	if err := (Timestamp{&b.FirstTimestamp}).encode(pe); err != nil {
+	if err := (Timestamp{&b.FirstTimestamp}).Encode(pe); err != nil {
 		return err
 	}
 
-	if err := (Timestamp{&b.MaxTimestamp}).encode(pe); err != nil {
+	if err := (Timestamp{&b.MaxTimestamp}).Encode(pe); err != nil {
 		return err
 	}
 
@@ -99,7 +99,7 @@ func (b *RecordBatch) encode(pe packetEncoder) error {
 	return pe.pop()
 }
 
-func (b *RecordBatch) decode(pd packetDecoder) (err error) {
+func (b *RecordBatch) Decode(pd packetDecoder) (err error) {
 	if b.FirstOffset, err = pd.getInt64(); err != nil {
 		return err
 	}
@@ -137,11 +137,11 @@ func (b *RecordBatch) decode(pd packetDecoder) (err error) {
 		return err
 	}
 
-	if err = (Timestamp{&b.FirstTimestamp}).decode(pd); err != nil {
+	if err = (Timestamp{&b.FirstTimestamp}).Decode(pd); err != nil {
 		return err
 	}
 
-	if err = (Timestamp{&b.MaxTimestamp}).decode(pd); err != nil {
+	if err = (Timestamp{&b.MaxTimestamp}).Decode(pd); err != nil {
 		return err
 	}
 
@@ -186,7 +186,7 @@ func (b *RecordBatch) decode(pd packetDecoder) (err error) {
 	}
 
 	b.recordsLen = len(recBuffer)
-	err = decode(recBuffer, recordsArray(b.Records), nil)
+	err = Decode(recBuffer, recordsArray(b.Records), nil)
 	if errors.Is(err, ErrInsufficientData) {
 		b.PartialTrailingRecord = true
 		b.Records = nil
@@ -198,7 +198,7 @@ func (b *RecordBatch) decode(pd packetDecoder) (err error) {
 func (b *RecordBatch) encodeRecords(pe packetEncoder) error {
 	var raw []byte
 	var err error
-	if raw, err = encode(recordsArray(b.Records), pe.metricRegistry()); err != nil {
+	if raw, err = Encode(recordsArray(b.Records), pe.metricRegistry()); err != nil {
 		return err
 	}
 	b.recordsLen = len(raw)

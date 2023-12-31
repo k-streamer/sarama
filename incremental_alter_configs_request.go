@@ -27,13 +27,13 @@ type IncrementalAlterConfigsEntry struct {
 	Value     *string
 }
 
-func (a *IncrementalAlterConfigsRequest) encode(pe packetEncoder) error {
+func (a *IncrementalAlterConfigsRequest) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(a.Resources)); err != nil {
 		return err
 	}
 
 	for _, r := range a.Resources {
-		if err := r.encode(pe); err != nil {
+		if err := r.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -42,7 +42,7 @@ func (a *IncrementalAlterConfigsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *IncrementalAlterConfigsRequest) decode(pd packetDecoder, version int16) error {
+func (a *IncrementalAlterConfigsRequest) Decode(pd packetDecoder, version int16) error {
 	resourceCount, err := pd.getArrayLength()
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (a *IncrementalAlterConfigsRequest) decode(pd packetDecoder, version int16)
 	a.Resources = make([]*IncrementalAlterConfigsResource, resourceCount)
 	for i := range a.Resources {
 		r := &IncrementalAlterConfigsResource{}
-		err = r.decode(pd, version)
+		err = r.Decode(pd, version)
 		if err != nil {
 			return err
 		}
@@ -68,7 +68,7 @@ func (a *IncrementalAlterConfigsRequest) decode(pd packetDecoder, version int16)
 	return nil
 }
 
-func (a *IncrementalAlterConfigsResource) encode(pe packetEncoder) error {
+func (a *IncrementalAlterConfigsResource) Encode(pe packetEncoder) error {
 	pe.putInt8(int8(a.Type))
 
 	if err := pe.putString(a.Name); err != nil {
@@ -84,7 +84,7 @@ func (a *IncrementalAlterConfigsResource) encode(pe packetEncoder) error {
 			return err
 		}
 
-		if err := e.encode(pe); err != nil {
+		if err := e.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -92,7 +92,7 @@ func (a *IncrementalAlterConfigsResource) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *IncrementalAlterConfigsResource) decode(pd packetDecoder, version int16) error {
+func (a *IncrementalAlterConfigsResource) Decode(pd packetDecoder, version int16) error {
 	t, err := pd.getInt8()
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (a *IncrementalAlterConfigsResource) decode(pd packetDecoder, version int16
 
 			var v IncrementalAlterConfigsEntry
 
-			if err := v.decode(pd, version); err != nil {
+			if err := v.Decode(pd, version); err != nil {
 				return err
 			}
 
@@ -130,7 +130,7 @@ func (a *IncrementalAlterConfigsResource) decode(pd packetDecoder, version int16
 	return err
 }
 
-func (a *IncrementalAlterConfigsEntry) encode(pe packetEncoder) error {
+func (a *IncrementalAlterConfigsEntry) Encode(pe packetEncoder) error {
 	pe.putInt8(int8(a.Operation))
 
 	if err := pe.putNullableString(a.Value); err != nil {
@@ -140,7 +140,7 @@ func (a *IncrementalAlterConfigsEntry) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *IncrementalAlterConfigsEntry) decode(pd packetDecoder, version int16) error {
+func (a *IncrementalAlterConfigsEntry) Decode(pd packetDecoder, version int16) error {
 	t, err := pd.getInt8()
 	if err != nil {
 		return err
@@ -157,22 +157,22 @@ func (a *IncrementalAlterConfigsEntry) decode(pd packetDecoder, version int16) e
 	return nil
 }
 
-func (a *IncrementalAlterConfigsRequest) key() int16 {
+func (a *IncrementalAlterConfigsRequest) APIKey() int16 {
 	return 44
 }
 
-func (a *IncrementalAlterConfigsRequest) version() int16 {
+func (a *IncrementalAlterConfigsRequest) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *IncrementalAlterConfigsRequest) headerVersion() int16 {
+func (a *IncrementalAlterConfigsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (a *IncrementalAlterConfigsRequest) isValidVersion() bool {
+func (a *IncrementalAlterConfigsRequest) IsValidVersion() bool {
 	return a.Version == 0
 }
 
-func (a *IncrementalAlterConfigsRequest) requiredVersion() KafkaVersion {
+func (a *IncrementalAlterConfigsRequest) RequiredVersion() KafkaVersion {
 	return V2_3_0_0
 }

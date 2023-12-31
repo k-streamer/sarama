@@ -25,7 +25,7 @@ func releaseLengthField(m *lengthField) {
 	lengthFieldPool.Put(m)
 }
 
-func (l *lengthField) decode(pd packetDecoder) error {
+func (l *lengthField) Decode(pd packetDecoder) error {
 	var err error
 	l.length, err = pd.getInt32()
 	if err != nil {
@@ -63,7 +63,7 @@ type varintLengthField struct {
 	length      int64
 }
 
-func (l *varintLengthField) decode(pd packetDecoder) error {
+func (l *varintLengthField) Decode(pd packetDecoder) error {
 	var err error
 	l.length, err = pd.getVarint()
 	return err

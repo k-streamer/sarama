@@ -61,7 +61,7 @@ func TestConsumerGroupMemberMetadata(t *testing.T) {
 		UserData: []byte{0x01, 0x02, 0x03},
 	}
 
-	buf, err := encode(meta, nil)
+	buf, err := Encode(meta, nil)
 	if err != nil {
 		t.Error("Failed to encode data", err)
 	} else if !bytes.Equal(groupMemberMetadataV0, buf) {
@@ -69,7 +69,7 @@ func TestConsumerGroupMemberMetadata(t *testing.T) {
 	}
 
 	meta2 := new(ConsumerGroupMemberMetadata)
-	err = decode(buf, meta2, nil)
+	err = Decode(buf, meta2, nil)
 	if err != nil {
 		t.Error("Failed to decode data", err)
 	} else if !reflect.DeepEqual(meta, meta2) {
@@ -79,17 +79,17 @@ func TestConsumerGroupMemberMetadata(t *testing.T) {
 
 func TestConsumerGroupMemberMetadataV1Decode(t *testing.T) {
 	meta := new(ConsumerGroupMemberMetadata)
-	if err := decode(groupMemberMetadataV1, meta, nil); err != nil {
+	if err := Decode(groupMemberMetadataV1, meta, nil); err != nil {
 		t.Error("Failed to decode V1 data", err)
 	}
-	if err := decode(groupMemberMetadataV1Bad, meta, nil); err != nil {
+	if err := Decode(groupMemberMetadataV1Bad, meta, nil); err != nil {
 		t.Error("Failed to decode V1 'bad' data", err)
 	}
 }
 
 func TestConsumerGroupMemberMetadataV3Decode(t *testing.T) {
 	meta := new(ConsumerGroupMemberMetadata)
-	if err := decode(groupMemberMetadataV3NilOwned, meta, nil); err != nil {
+	if err := Decode(groupMemberMetadataV3NilOwned, meta, nil); err != nil {
 		t.Error("Failed to decode V3 data", err)
 	}
 }
@@ -103,7 +103,7 @@ func TestConsumerGroupMemberAssignment(t *testing.T) {
 		UserData: []byte{0x01, 0x02, 0x03},
 	}
 
-	buf, err := encode(amt, nil)
+	buf, err := Encode(amt, nil)
 	if err != nil {
 		t.Error("Failed to encode data", err)
 	} else if !bytes.Equal(groupMemberAssignmentV0, buf) {
@@ -111,7 +111,7 @@ func TestConsumerGroupMemberAssignment(t *testing.T) {
 	}
 
 	amt2 := new(ConsumerGroupMemberAssignment)
-	err = decode(buf, amt2, nil)
+	err = Decode(buf, amt2, nil)
 	if err != nil {
 		t.Error("Failed to decode data", err)
 	} else if !reflect.DeepEqual(amt, amt2) {

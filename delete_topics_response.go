@@ -8,7 +8,7 @@ type DeleteTopicsResponse struct {
 	TopicErrorCodes map[string]KError
 }
 
-func (d *DeleteTopicsResponse) encode(pe packetEncoder) error {
+func (d *DeleteTopicsResponse) Encode(pe packetEncoder) error {
 	if d.Version >= 1 {
 		pe.putInt32(int32(d.ThrottleTime / time.Millisecond))
 	}
@@ -26,7 +26,7 @@ func (d *DeleteTopicsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (d *DeleteTopicsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (d *DeleteTopicsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	if version >= 1 {
 		throttleTime, err := pd.getInt32()
 		if err != nil {
@@ -60,23 +60,23 @@ func (d *DeleteTopicsResponse) decode(pd packetDecoder, version int16) (err erro
 	return nil
 }
 
-func (d *DeleteTopicsResponse) key() int16 {
+func (d *DeleteTopicsResponse) APIKey() int16 {
 	return 20
 }
 
-func (d *DeleteTopicsResponse) version() int16 {
+func (d *DeleteTopicsResponse) APIVersion() int16 {
 	return d.Version
 }
 
-func (d *DeleteTopicsResponse) headerVersion() int16 {
+func (d *DeleteTopicsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (d *DeleteTopicsResponse) isValidVersion() bool {
+func (d *DeleteTopicsResponse) IsValidVersion() bool {
 	return d.Version >= 0 && d.Version <= 3
 }
 
-func (d *DeleteTopicsResponse) requiredVersion() KafkaVersion {
+func (d *DeleteTopicsResponse) RequiredVersion() KafkaVersion {
 	switch d.Version {
 	case 3:
 		return V2_1_0_0

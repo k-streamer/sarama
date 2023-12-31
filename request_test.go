@@ -86,9 +86,9 @@ var names = map[int16]string{
 // central registry of types, so we can't do this using reflection for Response
 // types and assuming that the struct is identically named, just with Response
 // instead of Request.
-func allocateResponseBody(req protocolBody) protocolBody {
-	key := req.key()
-	version := req.version()
+func allocateResponseBody(req ProtocolBody) ProtocolBody {
+	key := req.APIKey()
+	version := req.APIVersion()
 	switch key {
 	case 0:
 		return &ProduceResponse{Version: version}
@@ -336,13 +336,13 @@ func TestAllocateBodyProtocolVersions(t *testing.T) {
 				}
 				resp := allocateResponseBody(req)
 				assert.NotNil(t, resp, fmt.Sprintf("%s has no matching response type in allocateResponseBody", reflect.TypeOf(req)))
-				assert.Equal(t, req.isValidVersion(), resp.isValidVersion(), fmt.Sprintf("%s isValidVersion should match %s", reflect.TypeOf(req), reflect.TypeOf(resp)))
-				assert.Equal(t, req.requiredVersion(), resp.requiredVersion(), fmt.Sprintf("%s requiredVersion should match %s", reflect.TypeOf(req), reflect.TypeOf(resp)))
-				for _, body := range []protocolBody{req, resp} {
-					assert.Equal(t, key, body.key())
-					assert.Equal(t, version, body.version())
-					assert.True(t, body.isValidVersion(), fmt.Sprintf("%s v%d is not supported, but expected for KafkaVersion %s", reflect.TypeOf(body), version, tt.version))
-					assert.True(t, tt.version.IsAtLeast(body.requiredVersion()), fmt.Sprintf("KafkaVersion %s should be enough for %s v%d", tt.version, reflect.TypeOf(body), version))
+				assert.Equal(t, req.IsValidVersion(), resp.IsValidVersion(), fmt.Sprintf("%s IsValidVersion should match %s", reflect.TypeOf(req), reflect.TypeOf(resp)))
+				assert.Equal(t, req.RequiredVersion(), resp.RequiredVersion(), fmt.Sprintf("%s RequiredVersion should match %s", reflect.TypeOf(req), reflect.TypeOf(resp)))
+				for _, body := range []ProtocolBody{req, resp} {
+					assert.Equal(t, key, body.APIKey())
+					assert.Equal(t, version, body.APIVersion())
+					assert.True(t, body.IsValidVersion(), fmt.Sprintf("%s v%d is not supported, but expected for KafkaVersion %s", reflect.TypeOf(body), version, tt.version))
+					assert.True(t, tt.version.IsAtLeast(body.RequiredVersion()), fmt.Sprintf("KafkaVersion %s should be enough for %s v%d", tt.version, reflect.TypeOf(body), version))
 				}
 			})
 		}
@@ -350,11 +350,11 @@ func TestAllocateBodyProtocolVersions(t *testing.T) {
 }
 
 // not specific to request tests, just helper functions for testing structures that
-// implement the encoder or decoder interfaces that needed somewhere to live
+// implement the Encoder or Decoder interfaces that needed somewhere to live
 
-func testEncodable(t *testing.T, name string, in encoder, expect []byte) {
+func testEncodable(t *testing.T, name string, in Encoder, expect []byte) {
 	t.Helper()
-	packet, err := encode(in, nil)
+	packet, err := Encode(in, nil)
 	if err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(packet, expect) {
@@ -362,52 +362,52 @@ func testEncodable(t *testing.T, name string, in encoder, expect []byte) {
 	}
 }
 
-func testDecodable(t *testing.T, name string, out decoder, in []byte) {
+func testDecodable(t *testing.T, name string, out Decoder, in []byte) {
 	t.Helper()
-	err := decode(in, out, nil)
+	err := Decode(in, out, nil)
 	if err != nil {
 		t.Error("Decoding", name, "failed:", err)
 	}
 }
 
-func testVersionDecodable(t *testing.T, name string, out versionedDecoder, in []byte, version int16) {
+func testVersionDecodable(t *testing.T, name string, out VersionedDecoder, in []byte, version int16) {
 	t.Helper()
-	err := versionedDecode(in, out, version, nil)
+	err := VersionedDecode(in, out, version, nil)
 	if err != nil {
 		t.Error("Decoding", name, "version", version, "failed:", err)
 	}
 }
 
-func testRequest(t *testing.T, name string, rb protocolBody, expected []byte) {
+func testRequest(t *testing.T, name string, rb ProtocolBody, expected []byte) {
 	t.Helper()
-	if !rb.requiredVersion().IsAtLeast(MinVersion) {
+	if !rb.RequiredVersion().IsAtLeast(MinVersion) {
 		t.Errorf("Request %s has invalid required version", name)
 	}
 	packet := testRequestEncode(t, name, rb, expected)
 	testRequestDecode(t, name, rb, packet)
 }
 
-func testRequestWithoutByteComparison(t *testing.T, name string, rb protocolBody) {
-	if !rb.requiredVersion().IsAtLeast(MinVersion) {
-		t.Errorf("Request %s has invalid required version", name)
+func testRequestWithoutByteComparison(t *testing.T, name string, rb ProtocolBody) {
+	if !rb.RequiredVersion().IsAtLeast(MinVersion) {
+		t.Errorf("request %s has invalid required version", name)
 	}
 	packet := testRequestEncode(t, name, rb, nil)
 	testRequestDecode(t, name, rb, packet)
 }
 
-func testRequestEncode(t *testing.T, name string, rb protocolBody, expected []byte) []byte {
-	req := &request{correlationID: 123, clientID: "foo", body: rb}
-	packet, err := encode(req, nil)
+func testRequestEncode(t *testing.T, name string, rb ProtocolBody, expected []byte) []byte {
+	req := &Request{CorrelationID: 123, ClientID: "foo", Body: rb}
+	packet, err := Encode(req, nil)
 
 	headerSize := 0
 
-	switch rb.headerVersion() {
+	switch rb.HeaderVersion() {
 	case 1:
 		headerSize = 14 + len("foo")
 	case 2:
 		headerSize = 14 + len("foo") + 1
 	default:
-		t.Error("Encoding", name, "failed\nheaderVersion", rb.headerVersion(), "not implemented")
+		t.Error("Encoding", name, "failed\nheaderVersion", rb.HeaderVersion(), "not implemented")
 	}
 
 	if err != nil {
@@ -418,32 +418,32 @@ func testRequestEncode(t *testing.T, name string, rb protocolBody, expected []by
 	return packet
 }
 
-func testRequestDecode(t *testing.T, name string, rb protocolBody, packet []byte) {
+func testRequestDecode(t *testing.T, name string, rb ProtocolBody, packet []byte) {
 	t.Helper()
 	decoded, n, err := decodeRequest(bytes.NewReader(packet))
 	if err != nil {
 		t.Error("Failed to decode request", err)
-	} else if decoded.correlationID != 123 || decoded.clientID != "foo" {
+	} else if decoded.CorrelationID != 123 || decoded.ClientID != "foo" {
 		t.Errorf("Decoded header %q is not valid: %+v", name, decoded)
-	} else if !reflect.DeepEqual(rb, decoded.body) {
-		t.Error(spew.Sprintf("Decoded request %q does not match the encoded one\nencoded: %+v\ndecoded: %+v", name, rb, decoded.body))
+	} else if !reflect.DeepEqual(rb, decoded.Body) {
+		t.Error(spew.Sprintf("Decoded request %q does not match the encoded one\nencoded: %+v\ndecoded: %+v", name, rb, decoded.Body))
 	} else if n != len(packet) {
 		t.Errorf("Decoded request %q bytes: %d does not match the encoded one: %d\n", name, n, len(packet))
-	} else if rb.version() != decoded.body.version() {
-		t.Errorf("Decoded request %q version: %d does not match the encoded one: %d\n", name, decoded.body.version(), rb.version())
+	} else if rb.APIVersion() != decoded.Body.APIVersion() {
+		t.Errorf("Decoded request %q version: %d does not match the encoded one: %d\n", name, decoded.Body.APIVersion(), rb.APIVersion())
 	}
 }
 
-func testResponse(t *testing.T, name string, res protocolBody, expected []byte) {
-	encoded, err := encode(res, nil)
+func testResponse(t *testing.T, name string, res ProtocolBody, expected []byte) {
+	encoded, err := Encode(res, nil)
 	if err != nil {
 		t.Error(err)
 	} else if expected != nil && !bytes.Equal(encoded, expected) {
 		t.Error("Encoding", name, "failed\ngot ", encoded, "\nwant", expected)
 	}
 
-	decoded := reflect.New(reflect.TypeOf(res).Elem()).Interface().(versionedDecoder)
-	if err := versionedDecode(encoded, decoded, res.version(), nil); err != nil {
+	decoded := reflect.New(reflect.TypeOf(res).Elem()).Interface().(VersionedDecoder)
+	if err := VersionedDecode(encoded, decoded, res.APIVersion(), nil); err != nil {
 		t.Error("Decoding", name, "failed:", err)
 	}
 

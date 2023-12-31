@@ -28,13 +28,13 @@ type ClientQuotasOp struct {
 	Remove bool    // Whether the quota configuration value should be removed, otherwise set.
 }
 
-func (a *AlterClientQuotasRequest) encode(pe packetEncoder) error {
+func (a *AlterClientQuotasRequest) Encode(pe packetEncoder) error {
 	// Entries
 	if err := pe.putArrayLength(len(a.Entries)); err != nil {
 		return err
 	}
 	for _, e := range a.Entries {
-		if err := e.encode(pe); err != nil {
+		if err := e.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -45,7 +45,7 @@ func (a *AlterClientQuotasRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AlterClientQuotasRequest) decode(pd packetDecoder, version int16) error {
+func (a *AlterClientQuotasRequest) Decode(pd packetDecoder, version int16) error {
 	// Entries
 	entryCount, err := pd.getArrayLength()
 	if err != nil {
@@ -55,7 +55,7 @@ func (a *AlterClientQuotasRequest) decode(pd packetDecoder, version int16) error
 		a.Entries = make([]AlterClientQuotasEntry, entryCount)
 		for i := range a.Entries {
 			e := AlterClientQuotasEntry{}
-			if err = e.decode(pd, version); err != nil {
+			if err = e.Decode(pd, version); err != nil {
 				return err
 			}
 			a.Entries[i] = e
@@ -74,13 +74,13 @@ func (a *AlterClientQuotasRequest) decode(pd packetDecoder, version int16) error
 	return nil
 }
 
-func (a *AlterClientQuotasEntry) encode(pe packetEncoder) error {
+func (a *AlterClientQuotasEntry) Encode(pe packetEncoder) error {
 	// Entity
 	if err := pe.putArrayLength(len(a.Entity)); err != nil {
 		return err
 	}
 	for _, component := range a.Entity {
-		if err := component.encode(pe); err != nil {
+		if err := component.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -90,7 +90,7 @@ func (a *AlterClientQuotasEntry) encode(pe packetEncoder) error {
 		return err
 	}
 	for _, o := range a.Ops {
-		if err := o.encode(pe); err != nil {
+		if err := o.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -98,7 +98,7 @@ func (a *AlterClientQuotasEntry) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AlterClientQuotasEntry) decode(pd packetDecoder, version int16) error {
+func (a *AlterClientQuotasEntry) Decode(pd packetDecoder, version int16) error {
 	// Entity
 	componentCount, err := pd.getArrayLength()
 	if err != nil {
@@ -108,7 +108,7 @@ func (a *AlterClientQuotasEntry) decode(pd packetDecoder, version int16) error {
 		a.Entity = make([]QuotaEntityComponent, componentCount)
 		for i := 0; i < componentCount; i++ {
 			component := QuotaEntityComponent{}
-			if err := component.decode(pd, version); err != nil {
+			if err := component.Decode(pd, version); err != nil {
 				return err
 			}
 			a.Entity[i] = component
@@ -126,7 +126,7 @@ func (a *AlterClientQuotasEntry) decode(pd packetDecoder, version int16) error {
 		a.Ops = make([]ClientQuotasOp, opCount)
 		for i := range a.Ops {
 			c := ClientQuotasOp{}
-			if err = c.decode(pd, version); err != nil {
+			if err = c.Decode(pd, version); err != nil {
 				return err
 			}
 			a.Ops[i] = c
@@ -138,7 +138,7 @@ func (a *AlterClientQuotasEntry) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (c *ClientQuotasOp) encode(pe packetEncoder) error {
+func (c *ClientQuotasOp) Encode(pe packetEncoder) error {
 	// Key
 	if err := pe.putString(c.Key); err != nil {
 		return err
@@ -153,7 +153,7 @@ func (c *ClientQuotasOp) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (c *ClientQuotasOp) decode(pd packetDecoder, version int16) error {
+func (c *ClientQuotasOp) Decode(pd packetDecoder, version int16) error {
 	// Key
 	key, err := pd.getString()
 	if err != nil {
@@ -178,22 +178,22 @@ func (c *ClientQuotasOp) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (a *AlterClientQuotasRequest) key() int16 {
+func (a *AlterClientQuotasRequest) APIKey() int16 {
 	return 49
 }
 
-func (a *AlterClientQuotasRequest) version() int16 {
+func (a *AlterClientQuotasRequest) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *AlterClientQuotasRequest) headerVersion() int16 {
+func (a *AlterClientQuotasRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (a *AlterClientQuotasRequest) isValidVersion() bool {
+func (a *AlterClientQuotasRequest) IsValidVersion() bool {
 	return a.Version == 0
 }
 
-func (a *AlterClientQuotasRequest) requiredVersion() KafkaVersion {
+func (a *AlterClientQuotasRequest) RequiredVersion() KafkaVersion {
 	return V2_6_0_0
 }

@@ -44,7 +44,7 @@ func NewOffsetFetchRequest(
 	return request
 }
 
-func (r *OffsetFetchRequest) encode(pe packetEncoder) (err error) {
+func (r *OffsetFetchRequest) Encode(pe packetEncoder) (err error) {
 	if r.Version < 0 || r.Version > 7 {
 		return PacketEncodingError{"invalid or unsupported OffsetFetchRequest version field"}
 	}
@@ -117,7 +117,7 @@ func (r *OffsetFetchRequest) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *OffsetFetchRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *OffsetFetchRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	isFlexible := r.Version >= 6
 	if isFlexible {
@@ -192,15 +192,15 @@ func (r *OffsetFetchRequest) decode(pd packetDecoder, version int16) (err error)
 	return nil
 }
 
-func (r *OffsetFetchRequest) key() int16 {
+func (r *OffsetFetchRequest) APIKey() int16 {
 	return 9
 }
 
-func (r *OffsetFetchRequest) version() int16 {
+func (r *OffsetFetchRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *OffsetFetchRequest) headerVersion() int16 {
+func (r *OffsetFetchRequest) HeaderVersion() int16 {
 	if r.Version >= 6 {
 		return 2
 	}
@@ -208,11 +208,11 @@ func (r *OffsetFetchRequest) headerVersion() int16 {
 	return 1
 }
 
-func (r *OffsetFetchRequest) isValidVersion() bool {
+func (r *OffsetFetchRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 7
 }
 
-func (r *OffsetFetchRequest) requiredVersion() KafkaVersion {
+func (r *OffsetFetchRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 7:
 		return V2_5_0_0

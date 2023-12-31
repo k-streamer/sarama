@@ -30,7 +30,7 @@ func (b *fetchRequestBlock) encode(pe packetEncoder, version int16) error {
 	return nil
 }
 
-func (b *fetchRequestBlock) decode(pd packetDecoder, version int16) (err error) {
+func (b *fetchRequestBlock) Decode(pd packetDecoder, version int16) (err error) {
 	b.Version = version
 	if b.Version >= 9 {
 		if b.currentLeaderEpoch, err = pd.getInt32(); err != nil {
@@ -96,7 +96,7 @@ const (
 	ReadCommitted
 )
 
-func (r *FetchRequest) encode(pe packetEncoder) (err error) {
+func (r *FetchRequest) Encode(pe packetEncoder) (err error) {
 	metricRegistry := pe.metricRegistry()
 
 	pe.putInt32(-1) // ReplicaID is always -1 for clients
@@ -163,7 +163,7 @@ func (r *FetchRequest) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *FetchRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *FetchRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 
 	if _, err = pd.getInt32(); err != nil {
@@ -221,7 +221,7 @@ func (r *FetchRequest) decode(pd packetDecoder, version int16) (err error) {
 				return err
 			}
 			fetchBlock := &fetchRequestBlock{}
-			if err = fetchBlock.decode(pd, r.Version); err != nil {
+			if err = fetchBlock.Decode(pd, r.Version); err != nil {
 				return err
 			}
 			r.blocks[topic][partition] = fetchBlock
@@ -268,23 +268,23 @@ func (r *FetchRequest) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (r *FetchRequest) key() int16 {
+func (r *FetchRequest) APIKey() int16 {
 	return 1
 }
 
-func (r *FetchRequest) version() int16 {
+func (r *FetchRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *FetchRequest) headerVersion() int16 {
+func (r *FetchRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *FetchRequest) isValidVersion() bool {
+func (r *FetchRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 11
 }
 
-func (r *FetchRequest) requiredVersion() KafkaVersion {
+func (r *FetchRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 11:
 		return V2_3_0_0

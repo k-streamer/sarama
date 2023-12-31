@@ -8,7 +8,7 @@ type HeartbeatResponse struct {
 	Err          KError
 }
 
-func (r *HeartbeatResponse) encode(pe packetEncoder) error {
+func (r *HeartbeatResponse) Encode(pe packetEncoder) error {
 	if r.Version >= 1 {
 		pe.putInt32(r.ThrottleTime)
 	}
@@ -16,7 +16,7 @@ func (r *HeartbeatResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *HeartbeatResponse) decode(pd packetDecoder, version int16) error {
+func (r *HeartbeatResponse) Decode(pd packetDecoder, version int16) error {
 	var err error
 	r.Version = version
 	if r.Version >= 1 {
@@ -33,23 +33,23 @@ func (r *HeartbeatResponse) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (r *HeartbeatResponse) key() int16 {
+func (r *HeartbeatResponse) APIKey() int16 {
 	return 12
 }
 
-func (r *HeartbeatResponse) version() int16 {
+func (r *HeartbeatResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *HeartbeatResponse) headerVersion() int16 {
+func (r *HeartbeatResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *HeartbeatResponse) isValidVersion() bool {
+func (r *HeartbeatResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 3
 }
 
-func (r *HeartbeatResponse) requiredVersion() KafkaVersion {
+func (r *HeartbeatResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 3:
 		return V2_3_0_0

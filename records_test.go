@@ -18,11 +18,11 @@ func TestLegacyRecords(t *testing.T) {
 	}
 	r := newLegacyRecords(set)
 
-	exp, err := encode(set, nil)
+	exp, err := Encode(set, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	buf, err := encode(&r, nil)
+	buf, err := Encode(&r, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,11 +33,11 @@ func TestLegacyRecords(t *testing.T) {
 	set = &MessageSet{}
 	r = Records{}
 
-	err = decode(exp, set, nil)
+	err = Decode(exp, set, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = decode(buf, &r, nil)
+	err = Decode(buf, &r, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,11 +95,11 @@ func TestDefaultRecords(t *testing.T) {
 
 	r := newDefaultRecords(batch)
 
-	exp, err := encode(batch, nil)
+	exp, err := Encode(batch, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	buf, err := encode(&r, nil)
+	buf, err := Encode(&r, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,11 +110,11 @@ func TestDefaultRecords(t *testing.T) {
 	batch = &RecordBatch{}
 	r = Records{}
 
-	err = decode(exp, batch, nil)
+	err = Decode(exp, batch, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = decode(buf, &r, nil)
+	err = Decode(buf, &r, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

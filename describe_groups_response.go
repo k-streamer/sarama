@@ -13,7 +13,7 @@ type DescribeGroupsResponse struct {
 	Groups []*GroupDescription
 }
 
-func (r *DescribeGroupsResponse) encode(pe packetEncoder) (err error) {
+func (r *DescribeGroupsResponse) Encode(pe packetEncoder) (err error) {
 	if r.Version >= 1 {
 		pe.putInt32(r.ThrottleTimeMs)
 	}
@@ -30,7 +30,7 @@ func (r *DescribeGroupsResponse) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *DescribeGroupsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *DescribeGroupsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.Version >= 1 {
 		if r.ThrottleTimeMs, err = pd.getInt32(); err != nil {
@@ -43,7 +43,7 @@ func (r *DescribeGroupsResponse) decode(pd packetDecoder, version int16) (err er
 		r.Groups = make([]*GroupDescription, numGroups)
 		for i := 0; i < numGroups; i++ {
 			block := &GroupDescription{}
-			if err := block.decode(pd, r.Version); err != nil {
+			if err := block.Decode(pd, r.Version); err != nil {
 				return err
 			}
 			r.Groups[i] = block
@@ -53,23 +53,23 @@ func (r *DescribeGroupsResponse) decode(pd packetDecoder, version int16) (err er
 	return nil
 }
 
-func (r *DescribeGroupsResponse) key() int16 {
+func (r *DescribeGroupsResponse) APIKey() int16 {
 	return 15
 }
 
-func (r *DescribeGroupsResponse) version() int16 {
+func (r *DescribeGroupsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DescribeGroupsResponse) headerVersion() int16 {
+func (r *DescribeGroupsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *DescribeGroupsResponse) isValidVersion() bool {
+func (r *DescribeGroupsResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 4
 }
 
-func (r *DescribeGroupsResponse) requiredVersion() KafkaVersion {
+func (r *DescribeGroupsResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 4:
 		return V2_4_0_0
@@ -147,7 +147,7 @@ func (gd *GroupDescription) encode(pe packetEncoder, version int16) (err error) 
 	return nil
 }
 
-func (gd *GroupDescription) decode(pd packetDecoder, version int16) (err error) {
+func (gd *GroupDescription) Decode(pd packetDecoder, version int16) (err error) {
 	gd.Version = version
 	if gd.ErrorCode, err = pd.getInt16(); err != nil {
 		return err
@@ -174,7 +174,7 @@ func (gd *GroupDescription) decode(pd packetDecoder, version int16) (err error) 
 		gd.Members = make(map[string]*GroupMemberDescription, numMembers)
 		for i := 0; i < numMembers; i++ {
 			block := &GroupMemberDescription{}
-			if err := block.decode(pd, gd.Version); err != nil {
+			if err := block.Decode(pd, gd.Version); err != nil {
 				return err
 			}
 			gd.Members[block.MemberId] = block
@@ -238,7 +238,7 @@ func (gmd *GroupMemberDescription) encode(pe packetEncoder, version int16) (err 
 	return nil
 }
 
-func (gmd *GroupMemberDescription) decode(pd packetDecoder, version int16) (err error) {
+func (gmd *GroupMemberDescription) Decode(pd packetDecoder, version int16) (err error) {
 	gmd.Version = version
 	if gmd.MemberId, err = pd.getString(); err != nil {
 		return err
@@ -269,7 +269,7 @@ func (gmd *GroupMemberDescription) GetMemberAssignment() (*ConsumerGroupMemberAs
 		return nil, nil
 	}
 	assignment := new(ConsumerGroupMemberAssignment)
-	err := decode(gmd.MemberAssignment, assignment, nil)
+	err := Decode(gmd.MemberAssignment, assignment, nil)
 	return assignment, err
 }
 
@@ -278,6 +278,6 @@ func (gmd *GroupMemberDescription) GetMemberMetadata() (*ConsumerGroupMemberMeta
 		return nil, nil
 	}
 	metadata := new(ConsumerGroupMemberMetadata)
-	err := decode(gmd.MemberMetadata, metadata, nil)
+	err := Decode(gmd.MemberMetadata, metadata, nil)
 	return metadata, err
 }

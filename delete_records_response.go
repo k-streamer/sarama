@@ -18,7 +18,7 @@ type DeleteRecordsResponse struct {
 	Topics       map[string]*DeleteRecordsResponseTopic
 }
 
-func (d *DeleteRecordsResponse) encode(pe packetEncoder) error {
+func (d *DeleteRecordsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(d.ThrottleTime / time.Millisecond))
 
 	if err := pe.putArrayLength(len(d.Topics)); err != nil {
@@ -33,14 +33,14 @@ func (d *DeleteRecordsResponse) encode(pe packetEncoder) error {
 		if err := pe.putString(topic); err != nil {
 			return err
 		}
-		if err := d.Topics[topic].encode(pe); err != nil {
+		if err := d.Topics[topic].Encode(pe); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (d *DeleteRecordsResponse) decode(pd packetDecoder, version int16) error {
+func (d *DeleteRecordsResponse) Decode(pd packetDecoder, version int16) error {
 	d.Version = version
 
 	throttleTime, err := pd.getInt32()
@@ -62,7 +62,7 @@ func (d *DeleteRecordsResponse) decode(pd packetDecoder, version int16) error {
 				return err
 			}
 			details := new(DeleteRecordsResponseTopic)
-			if err = details.decode(pd, version); err != nil {
+			if err = details.Decode(pd, version); err != nil {
 				return err
 			}
 			d.Topics[topic] = details
@@ -72,23 +72,23 @@ func (d *DeleteRecordsResponse) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (d *DeleteRecordsResponse) key() int16 {
+func (d *DeleteRecordsResponse) APIKey() int16 {
 	return 21
 }
 
-func (d *DeleteRecordsResponse) version() int16 {
+func (d *DeleteRecordsResponse) APIVersion() int16 {
 	return d.Version
 }
 
-func (d *DeleteRecordsResponse) headerVersion() int16 {
+func (d *DeleteRecordsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (d *DeleteRecordsResponse) isValidVersion() bool {
+func (d *DeleteRecordsResponse) IsValidVersion() bool {
 	return d.Version >= 0 && d.Version <= 1
 }
 
-func (d *DeleteRecordsResponse) requiredVersion() KafkaVersion {
+func (d *DeleteRecordsResponse) RequiredVersion() KafkaVersion {
 	switch d.Version {
 	case 1:
 		return V2_0_0_0
@@ -105,7 +105,7 @@ type DeleteRecordsResponseTopic struct {
 	Partitions map[int32]*DeleteRecordsResponsePartition
 }
 
-func (t *DeleteRecordsResponseTopic) encode(pe packetEncoder) error {
+func (t *DeleteRecordsResponseTopic) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(t.Partitions)); err != nil {
 		return err
 	}
@@ -116,14 +116,14 @@ func (t *DeleteRecordsResponseTopic) encode(pe packetEncoder) error {
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 	for _, partition := range keys {
 		pe.putInt32(partition)
-		if err := t.Partitions[partition].encode(pe); err != nil {
+		if err := t.Partitions[partition].Encode(pe); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (t *DeleteRecordsResponseTopic) decode(pd packetDecoder, version int16) error {
+func (t *DeleteRecordsResponseTopic) Decode(pd packetDecoder, version int16) error {
 	n, err := pd.getArrayLength()
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func (t *DeleteRecordsResponseTopic) decode(pd packetDecoder, version int16) err
 				return err
 			}
 			details := new(DeleteRecordsResponsePartition)
-			if err = details.decode(pd, version); err != nil {
+			if err = details.Decode(pd, version); err != nil {
 				return err
 			}
 			t.Partitions[partition] = details
@@ -152,13 +152,13 @@ type DeleteRecordsResponsePartition struct {
 	Err          KError
 }
 
-func (t *DeleteRecordsResponsePartition) encode(pe packetEncoder) error {
+func (t *DeleteRecordsResponsePartition) Encode(pe packetEncoder) error {
 	pe.putInt64(t.LowWatermark)
 	pe.putInt16(int16(t.Err))
 	return nil
 }
 
-func (t *DeleteRecordsResponsePartition) decode(pd packetDecoder, version int16) error {
+func (t *DeleteRecordsResponsePartition) Decode(pd packetDecoder, version int16) error {
 	lowWatermark, err := pd.getInt64()
 	if err != nil {
 		return err

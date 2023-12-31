@@ -9,7 +9,7 @@ type DeleteAclsResponse struct {
 	FilterResponses []*FilterResponse
 }
 
-func (d *DeleteAclsResponse) encode(pe packetEncoder) error {
+func (d *DeleteAclsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(d.ThrottleTime / time.Millisecond))
 
 	if err := pe.putArrayLength(len(d.FilterResponses)); err != nil {
@@ -25,7 +25,7 @@ func (d *DeleteAclsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (d *DeleteAclsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (d *DeleteAclsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (d *DeleteAclsResponse) decode(pd packetDecoder, version int16) (err error)
 
 	for i := 0; i < n; i++ {
 		d.FilterResponses[i] = new(FilterResponse)
-		if err := d.FilterResponses[i].decode(pd, version); err != nil {
+		if err := d.FilterResponses[i].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -48,23 +48,23 @@ func (d *DeleteAclsResponse) decode(pd packetDecoder, version int16) (err error)
 	return nil
 }
 
-func (d *DeleteAclsResponse) key() int16 {
+func (d *DeleteAclsResponse) APIKey() int16 {
 	return 31
 }
 
-func (d *DeleteAclsResponse) version() int16 {
+func (d *DeleteAclsResponse) APIVersion() int16 {
 	return d.Version
 }
 
-func (d *DeleteAclsResponse) headerVersion() int16 {
+func (d *DeleteAclsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (d *DeleteAclsResponse) isValidVersion() bool {
+func (d *DeleteAclsResponse) IsValidVersion() bool {
 	return d.Version >= 0 && d.Version <= 1
 }
 
-func (d *DeleteAclsResponse) requiredVersion() KafkaVersion {
+func (d *DeleteAclsResponse) RequiredVersion() KafkaVersion {
 	switch d.Version {
 	case 1:
 		return V2_0_0_0
@@ -102,7 +102,7 @@ func (f *FilterResponse) encode(pe packetEncoder, version int16) error {
 	return nil
 }
 
-func (f *FilterResponse) decode(pd packetDecoder, version int16) (err error) {
+func (f *FilterResponse) Decode(pd packetDecoder, version int16) (err error) {
 	kerr, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (f *FilterResponse) decode(pd packetDecoder, version int16) (err error) {
 	f.MatchingAcls = make([]*MatchingAcl, n)
 	for i := 0; i < n; i++ {
 		f.MatchingAcls[i] = new(MatchingAcl)
-		if err := f.MatchingAcls[i].decode(pd, version); err != nil {
+		if err := f.MatchingAcls[i].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -146,14 +146,14 @@ func (m *MatchingAcl) encode(pe packetEncoder, version int16) error {
 		return err
 	}
 
-	if err := m.Acl.encode(pe); err != nil {
+	if err := m.Acl.Encode(pe); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (m *MatchingAcl) decode(pd packetDecoder, version int16) (err error) {
+func (m *MatchingAcl) Decode(pd packetDecoder, version int16) (err error) {
 	kerr, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -164,11 +164,11 @@ func (m *MatchingAcl) decode(pd packetDecoder, version int16) (err error) {
 		return err
 	}
 
-	if err := m.Resource.decode(pd, version); err != nil {
+	if err := m.Resource.Decode(pd, version); err != nil {
 		return err
 	}
 
-	if err := m.Acl.decode(pd, version); err != nil {
+	if err := m.Acl.Decode(pd, version); err != nil {
 		return err
 	}
 

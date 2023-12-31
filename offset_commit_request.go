@@ -33,7 +33,7 @@ func (b *offsetCommitRequestBlock) encode(pe packetEncoder, version int16) error
 	return pe.putString(b.metadata)
 }
 
-func (b *offsetCommitRequestBlock) decode(pd packetDecoder, version int16) (err error) {
+func (b *offsetCommitRequestBlock) Decode(pd packetDecoder, version int16) (err error) {
 	if b.offset, err = pd.getInt64(); err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ type OffsetCommitRequest struct {
 	blocks  map[string]map[int32]*offsetCommitRequestBlock
 }
 
-func (r *OffsetCommitRequest) encode(pe packetEncoder) error {
+func (r *OffsetCommitRequest) Encode(pe packetEncoder) error {
 	if r.Version < 0 || r.Version > 7 {
 		return PacketEncodingError{"invalid or unsupported OffsetCommitRequest version field"}
 	}
@@ -127,7 +127,7 @@ func (r *OffsetCommitRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *OffsetCommitRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *OffsetCommitRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 
 	if r.ConsumerGroup, err = pd.getString(); err != nil {
@@ -180,7 +180,7 @@ func (r *OffsetCommitRequest) decode(pd packetDecoder, version int16) (err error
 				return err
 			}
 			block := &offsetCommitRequestBlock{}
-			if err := block.decode(pd, r.Version); err != nil {
+			if err := block.Decode(pd, r.Version); err != nil {
 				return err
 			}
 			r.blocks[topic][partition] = block
@@ -189,23 +189,23 @@ func (r *OffsetCommitRequest) decode(pd packetDecoder, version int16) (err error
 	return nil
 }
 
-func (r *OffsetCommitRequest) key() int16 {
+func (r *OffsetCommitRequest) APIKey() int16 {
 	return 8
 }
 
-func (r *OffsetCommitRequest) version() int16 {
+func (r *OffsetCommitRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *OffsetCommitRequest) headerVersion() int16 {
+func (r *OffsetCommitRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *OffsetCommitRequest) isValidVersion() bool {
+func (r *OffsetCommitRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 7
 }
 
-func (r *OffsetCommitRequest) requiredVersion() KafkaVersion {
+func (r *OffsetCommitRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 7:
 		return V2_3_0_0

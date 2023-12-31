@@ -12,7 +12,7 @@ type ConfigResource struct {
 	ConfigNames []string
 }
 
-func (r *DescribeConfigsRequest) encode(pe packetEncoder) error {
+func (r *DescribeConfigsRequest) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(r.Resources)); err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (r *DescribeConfigsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DescribeConfigsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *DescribeConfigsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	n, err := pd.getArrayLength()
 	if err != nil {
 		return err
@@ -91,23 +91,23 @@ func (r *DescribeConfigsRequest) decode(pd packetDecoder, version int16) (err er
 	return nil
 }
 
-func (r *DescribeConfigsRequest) key() int16 {
+func (r *DescribeConfigsRequest) APIKey() int16 {
 	return 32
 }
 
-func (r *DescribeConfigsRequest) version() int16 {
+func (r *DescribeConfigsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DescribeConfigsRequest) headerVersion() int16 {
+func (r *DescribeConfigsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *DescribeConfigsRequest) isValidVersion() bool {
+func (r *DescribeConfigsRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 2
 }
 
-func (r *DescribeConfigsRequest) requiredVersion() KafkaVersion {
+func (r *DescribeConfigsRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 2:
 		return V2_0_0_0

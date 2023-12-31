@@ -1115,7 +1115,7 @@ func BenchmarkProducerMediumSnappy(b *testing.B) {
 	benchmarkProducer(b, conf, "test.1", ByteEncoder(make([]byte, 1024)))
 }
 
-func benchmarkProducer(b *testing.B, conf *Config, topic string, value Encoder) {
+func benchmarkProducer(b *testing.B, conf *Config, topic string, value UtilEncoder) {
 	setupFunctionalTest(b)
 	defer teardownFunctionalTest(b)
 

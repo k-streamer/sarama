@@ -6,7 +6,7 @@ type DeleteOffsetsRequest struct {
 	partitions map[string][]int32
 }
 
-func (r *DeleteOffsetsRequest) encode(pe packetEncoder) (err error) {
+func (r *DeleteOffsetsRequest) Encode(pe packetEncoder) (err error) {
 	err = pe.putString(r.Group)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (r *DeleteOffsetsRequest) encode(pe packetEncoder) (err error) {
 	return
 }
 
-func (r *DeleteOffsetsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *DeleteOffsetsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Group, err = pd.getString()
 	if err != nil {
 		return err
@@ -68,23 +68,23 @@ func (r *DeleteOffsetsRequest) decode(pd packetDecoder, version int16) (err erro
 	return nil
 }
 
-func (r *DeleteOffsetsRequest) key() int16 {
+func (r *DeleteOffsetsRequest) APIKey() int16 {
 	return 47
 }
 
-func (r *DeleteOffsetsRequest) version() int16 {
+func (r *DeleteOffsetsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DeleteOffsetsRequest) headerVersion() int16 {
+func (r *DeleteOffsetsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *DeleteOffsetsRequest) isValidVersion() bool {
+func (r *DeleteOffsetsRequest) IsValidVersion() bool {
 	return r.Version == 0
 }
 
-func (r *DeleteOffsetsRequest) requiredVersion() KafkaVersion {
+func (r *DeleteOffsetsRequest) RequiredVersion() KafkaVersion {
 	return V2_4_0_0
 }
 

@@ -13,7 +13,7 @@ type ConsumerGroupMemberMetadata struct {
 	RackID          *string
 }
 
-func (m *ConsumerGroupMemberMetadata) encode(pe packetEncoder) error {
+func (m *ConsumerGroupMemberMetadata) Encode(pe packetEncoder) error {
 	pe.putInt16(m.Version)
 
 	if err := pe.putStringArray(m.Topics); err != nil {
@@ -29,7 +29,7 @@ func (m *ConsumerGroupMemberMetadata) encode(pe packetEncoder) error {
 			return err
 		}
 		for _, op := range m.OwnedPartitions {
-			if err := op.encode(pe); err != nil {
+			if err := op.Encode(pe); err != nil {
 				return err
 			}
 		}
@@ -48,7 +48,7 @@ func (m *ConsumerGroupMemberMetadata) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (m *ConsumerGroupMemberMetadata) decode(pd packetDecoder) (err error) {
+func (m *ConsumerGroupMemberMetadata) Decode(pd packetDecoder) (err error) {
 	if m.Version, err = pd.getInt16(); err != nil {
 		return
 	}
@@ -75,7 +75,7 @@ func (m *ConsumerGroupMemberMetadata) decode(pd packetDecoder) (err error) {
 			m.OwnedPartitions = make([]*OwnedPartition, n)
 			for i := 0; i < n; i++ {
 				m.OwnedPartitions[i] = &OwnedPartition{}
-				if err := m.OwnedPartitions[i].decode(pd); err != nil {
+				if err := m.OwnedPartitions[i].Decode(pd); err != nil {
 					return err
 				}
 			}
@@ -102,7 +102,7 @@ type OwnedPartition struct {
 	Partitions []int32
 }
 
-func (m *OwnedPartition) encode(pe packetEncoder) error {
+func (m *OwnedPartition) Encode(pe packetEncoder) error {
 	if err := pe.putString(m.Topic); err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (m *OwnedPartition) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (m *OwnedPartition) decode(pd packetDecoder) (err error) {
+func (m *OwnedPartition) Decode(pd packetDecoder) (err error) {
 	if m.Topic, err = pd.getString(); err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ type ConsumerGroupMemberAssignment struct {
 	UserData []byte
 }
 
-func (m *ConsumerGroupMemberAssignment) encode(pe packetEncoder) error {
+func (m *ConsumerGroupMemberAssignment) Encode(pe packetEncoder) error {
 	pe.putInt16(m.Version)
 
 	if err := pe.putArrayLength(len(m.Topics)); err != nil {
@@ -154,7 +154,7 @@ func (m *ConsumerGroupMemberAssignment) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (m *ConsumerGroupMemberAssignment) decode(pd packetDecoder) (err error) {
+func (m *ConsumerGroupMemberAssignment) Decode(pd packetDecoder) (err error) {
 	if m.Version, err = pd.getInt16(); err != nil {
 		return
 	}

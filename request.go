@@ -6,41 +6,41 @@ import (
 	"io"
 )
 
-type protocolBody interface {
-	encoder
-	versionedDecoder
-	key() int16
-	version() int16
-	headerVersion() int16
-	isValidVersion() bool
-	requiredVersion() KafkaVersion
+type ProtocolBody interface {
+	Encoder
+	VersionedDecoder
+	APIKey() int16
+	APIVersion() int16
+	HeaderVersion() int16
+	IsValidVersion() bool
+	RequiredVersion() KafkaVersion
 }
 
-type request struct {
-	correlationID int32
-	clientID      string
-	body          protocolBody
+type Request struct {
+	CorrelationID int32
+	ClientID      string
+	Body          ProtocolBody
 }
 
-func (r *request) encode(pe packetEncoder) error {
+func (r *Request) Encode(pe packetEncoder) error {
 	pe.push(&lengthField{})
-	pe.putInt16(r.body.key())
-	pe.putInt16(r.body.version())
-	pe.putInt32(r.correlationID)
+	pe.putInt16(r.Body.APIKey())
+	pe.putInt16(r.Body.APIVersion())
+	pe.putInt32(r.CorrelationID)
 
-	if r.body.headerVersion() >= 1 {
-		err := pe.putString(r.clientID)
+	if r.Body.HeaderVersion() >= 1 {
+		err := pe.putString(r.ClientID)
 		if err != nil {
 			return err
 		}
 	}
 
-	if r.body.headerVersion() >= 2 {
+	if r.Body.HeaderVersion() >= 2 {
 		// we don't use tag headers at the moment so we just put an array length of 0
 		pe.putUVarint(0)
 	}
 
-	err := r.body.encode(pe)
+	err := r.Body.Encode(pe)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (r *request) encode(pe packetEncoder) error {
 	return pe.pop()
 }
 
-func (r *request) decode(pd packetDecoder) (err error) {
+func (r *Request) Decode(pd packetDecoder) (err error) {
 	key, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -59,22 +59,22 @@ func (r *request) decode(pd packetDecoder) (err error) {
 		return err
 	}
 
-	r.correlationID, err = pd.getInt32()
+	r.CorrelationID, err = pd.getInt32()
 	if err != nil {
 		return err
 	}
 
-	r.clientID, err = pd.getString()
+	r.ClientID, err = pd.getString()
 	if err != nil {
 		return err
 	}
 
-	r.body = allocateBody(key, version)
-	if r.body == nil {
+	r.Body = allocateBody(key, version)
+	if r.Body == nil {
 		return PacketDecodingError{fmt.Sprintf("unknown request key (%d)", key)}
 	}
 
-	if r.body.headerVersion() >= 2 {
+	if r.Body.HeaderVersion() >= 2 {
 		// tagged field
 		_, err = pd.getUVarint()
 		if err != nil {
@@ -82,10 +82,10 @@ func (r *request) decode(pd packetDecoder) (err error) {
 		}
 	}
 
-	return r.body.decode(pd, version)
+	return r.Body.Decode(pd, version)
 }
 
-func decodeRequest(r io.Reader) (*request, int, error) {
+func decodeRequest(r io.Reader) (*Request, int, error) {
 	var (
 		bytesRead   int
 		lengthBytes = make([]byte, 4)
@@ -109,15 +109,15 @@ func decodeRequest(r io.Reader) (*request, int, error) {
 
 	bytesRead += len(encodedReq)
 
-	req := &request{}
-	if err := decode(encodedReq, req, nil); err != nil {
+	req := &Request{}
+	if err := Decode(encodedReq, req, nil); err != nil {
 		return nil, bytesRead, err
 	}
 
 	return req, bytesRead, nil
 }
 
-func allocateBody(key, version int16) protocolBody {
+func allocateBody(key, version int16) ProtocolBody {
 	switch key {
 	case 0:
 		return &ProduceRequest{Version: version}

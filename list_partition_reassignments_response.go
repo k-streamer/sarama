@@ -8,7 +8,7 @@ type PartitionReplicaReassignmentsStatus struct {
 	RemovingReplicas []int32
 }
 
-func (b *PartitionReplicaReassignmentsStatus) encode(pe packetEncoder) error {
+func (b *PartitionReplicaReassignmentsStatus) Encode(pe packetEncoder) error {
 	if err := pe.putCompactInt32Array(b.Replicas); err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func (b *PartitionReplicaReassignmentsStatus) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (b *PartitionReplicaReassignmentsStatus) decode(pd packetDecoder) (err error) {
+func (b *PartitionReplicaReassignmentsStatus) Decode(pd packetDecoder) (err error) {
 	if b.Replicas, err = pd.getCompactInt32Array(); err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (r *ListPartitionReassignmentsResponse) AddBlock(topic string, partition in
 	partitions[partition] = &PartitionReplicaReassignmentsStatus{Replicas: replicas, AddingReplicas: addingReplicas, RemovingReplicas: removingReplicas}
 }
 
-func (r *ListPartitionReassignmentsResponse) encode(pe packetEncoder) error {
+func (r *ListPartitionReassignmentsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(r.ThrottleTimeMs)
 	pe.putInt16(int16(r.ErrorCode))
 	if err := pe.putNullableCompactString(r.ErrorMessage); err != nil {
@@ -81,7 +81,7 @@ func (r *ListPartitionReassignmentsResponse) encode(pe packetEncoder) error {
 		for partition, block := range partitions {
 			pe.putInt32(partition)
 
-			if err := block.encode(pe); err != nil {
+			if err := block.Encode(pe); err != nil {
 				return err
 			}
 		}
@@ -93,7 +93,7 @@ func (r *ListPartitionReassignmentsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *ListPartitionReassignmentsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *ListPartitionReassignmentsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 
 	if r.ThrottleTimeMs, err = pd.getInt32(); err != nil {
@@ -137,7 +137,7 @@ func (r *ListPartitionReassignmentsResponse) decode(pd packetDecoder, version in
 			}
 
 			block := &PartitionReplicaReassignmentsStatus{}
-			if err := block.decode(pd); err != nil {
+			if err := block.Decode(pd); err != nil {
 				return err
 			}
 			r.TopicStatus[topic][partition] = block
@@ -154,23 +154,23 @@ func (r *ListPartitionReassignmentsResponse) decode(pd packetDecoder, version in
 	return nil
 }
 
-func (r *ListPartitionReassignmentsResponse) key() int16 {
+func (r *ListPartitionReassignmentsResponse) APIKey() int16 {
 	return 46
 }
 
-func (r *ListPartitionReassignmentsResponse) version() int16 {
+func (r *ListPartitionReassignmentsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *ListPartitionReassignmentsResponse) headerVersion() int16 {
+func (r *ListPartitionReassignmentsResponse) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *ListPartitionReassignmentsResponse) isValidVersion() bool {
+func (r *ListPartitionReassignmentsResponse) IsValidVersion() bool {
 	return r.Version == 0
 }
 
-func (r *ListPartitionReassignmentsResponse) requiredVersion() KafkaVersion {
+func (r *ListPartitionReassignmentsResponse) RequiredVersion() KafkaVersion {
 	return V2_4_0_0
 }
 

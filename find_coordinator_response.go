@@ -14,7 +14,7 @@ type FindCoordinatorResponse struct {
 	Coordinator  *Broker
 }
 
-func (f *FindCoordinatorResponse) decode(pd packetDecoder, version int16) (err error) {
+func (f *FindCoordinatorResponse) Decode(pd packetDecoder, version int16) (err error) {
 	if version >= 1 {
 		f.Version = version
 
@@ -40,7 +40,7 @@ func (f *FindCoordinatorResponse) decode(pd packetDecoder, version int16) (err e
 	coordinator := new(Broker)
 	// The version is hardcoded to 0, as version 1 of the Broker-decode
 	// contains the rack-field which is not present in the FindCoordinatorResponse.
-	if err := coordinator.decode(pd, 0); err != nil {
+	if err := coordinator.Decode(pd, 0); err != nil {
 		return err
 	}
 	if coordinator.addr == ":0" {
@@ -51,7 +51,7 @@ func (f *FindCoordinatorResponse) decode(pd packetDecoder, version int16) (err e
 	return nil
 }
 
-func (f *FindCoordinatorResponse) encode(pe packetEncoder) error {
+func (f *FindCoordinatorResponse) Encode(pe packetEncoder) error {
 	if f.Version >= 1 {
 		pe.putInt32(int32(f.ThrottleTime / time.Millisecond))
 	}
@@ -74,23 +74,23 @@ func (f *FindCoordinatorResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (f *FindCoordinatorResponse) key() int16 {
+func (f *FindCoordinatorResponse) APIKey() int16 {
 	return 10
 }
 
-func (f *FindCoordinatorResponse) version() int16 {
+func (f *FindCoordinatorResponse) APIVersion() int16 {
 	return f.Version
 }
 
-func (r *FindCoordinatorResponse) headerVersion() int16 {
+func (r *FindCoordinatorResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (f *FindCoordinatorResponse) isValidVersion() bool {
+func (f *FindCoordinatorResponse) IsValidVersion() bool {
 	return f.Version >= 0 && f.Version <= 2
 }
 
-func (f *FindCoordinatorResponse) requiredVersion() KafkaVersion {
+func (f *FindCoordinatorResponse) RequiredVersion() KafkaVersion {
 	switch f.Version {
 	case 2:
 		return V2_0_0_0

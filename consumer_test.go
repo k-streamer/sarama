@@ -1704,8 +1704,8 @@ func TestConsumerExpiryTicker(t *testing.T) {
 func TestConsumerTimestamps(t *testing.T) {
 	now := time.Now().Truncate(time.Millisecond)
 	type testMessage struct {
-		key       Encoder
-		offset    int64
+		key    UtilEncoder
+		offset int64
 		timestamp time.Time
 	}
 	for _, d := range []struct {
@@ -1875,7 +1875,7 @@ func TestExcludeUncommitted(t *testing.T) {
 	broker0.Close()
 }
 
-func assertMessageKey(t *testing.T, msg *ConsumerMessage, expectedKey Encoder) {
+func assertMessageKey(t *testing.T, msg *ConsumerMessage, expectedKey UtilEncoder) {
 	t.Helper()
 
 	wantKey, _ := expectedKey.Encode()
@@ -1884,7 +1884,7 @@ func assertMessageKey(t *testing.T, msg *ConsumerMessage, expectedKey Encoder) {
 	}
 }
 
-func assertMessageValue(t *testing.T, msg *ConsumerMessage, expectedValue Encoder) {
+func assertMessageValue(t *testing.T, msg *ConsumerMessage, expectedValue UtilEncoder) {
 	t.Helper()
 
 	wantValue, _ := expectedValue.Encode()

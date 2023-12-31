@@ -10,13 +10,13 @@ type EndTxnResponse struct {
 	Err          KError
 }
 
-func (e *EndTxnResponse) encode(pe packetEncoder) error {
+func (e *EndTxnResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(e.ThrottleTime / time.Millisecond))
 	pe.putInt16(int16(e.Err))
 	return nil
 }
 
-func (e *EndTxnResponse) decode(pd packetDecoder, version int16) (err error) {
+func (e *EndTxnResponse) Decode(pd packetDecoder, version int16) (err error) {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -32,23 +32,23 @@ func (e *EndTxnResponse) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (e *EndTxnResponse) key() int16 {
+func (e *EndTxnResponse) APIKey() int16 {
 	return 26
 }
 
-func (e *EndTxnResponse) version() int16 {
+func (e *EndTxnResponse) APIVersion() int16 {
 	return e.Version
 }
 
-func (r *EndTxnResponse) headerVersion() int16 {
+func (r *EndTxnResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (e *EndTxnResponse) isValidVersion() bool {
+func (e *EndTxnResponse) IsValidVersion() bool {
 	return e.Version >= 0 && e.Version <= 2
 }
 
-func (e *EndTxnResponse) requiredVersion() KafkaVersion {
+func (e *EndTxnResponse) RequiredVersion() KafkaVersion {
 	switch e.Version {
 	case 2:
 		return V2_7_0_0

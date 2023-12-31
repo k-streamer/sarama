@@ -18,7 +18,7 @@ type StickyAssignorUserDataV0 struct {
 	topicPartitions []topicPartitionAssignment
 }
 
-func (m *StickyAssignorUserDataV0) encode(pe packetEncoder) error {
+func (m *StickyAssignorUserDataV0) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(m.Topics)); err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (m *StickyAssignorUserDataV0) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (m *StickyAssignorUserDataV0) decode(pd packetDecoder) (err error) {
+func (m *StickyAssignorUserDataV0) Decode(pd packetDecoder) (err error) {
 	var topicLen int
 	if topicLen, err = pd.getArrayLength(); err != nil {
 		return
@@ -66,7 +66,7 @@ type StickyAssignorUserDataV1 struct {
 	topicPartitions []topicPartitionAssignment
 }
 
-func (m *StickyAssignorUserDataV1) encode(pe packetEncoder) error {
+func (m *StickyAssignorUserDataV1) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(m.Topics)); err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func (m *StickyAssignorUserDataV1) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (m *StickyAssignorUserDataV1) decode(pd packetDecoder) (err error) {
+func (m *StickyAssignorUserDataV1) Decode(pd packetDecoder) (err error) {
 	var topicLen int
 	if topicLen, err = pd.getArrayLength(); err != nil {
 		return

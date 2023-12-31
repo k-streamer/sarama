@@ -25,7 +25,7 @@ func (r *DeleteOffsetsResponse) AddError(topic string, partition int32, errorCod
 	partitions[partition] = errorCode
 }
 
-func (r *DeleteOffsetsResponse) encode(pe packetEncoder) error {
+func (r *DeleteOffsetsResponse) Encode(pe packetEncoder) error {
 	pe.putInt16(int16(r.ErrorCode))
 	pe.putInt32(int32(r.ThrottleTime / time.Millisecond))
 
@@ -47,7 +47,7 @@ func (r *DeleteOffsetsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DeleteOffsetsResponse) decode(pd packetDecoder, version int16) error {
+func (r *DeleteOffsetsResponse) Decode(pd packetDecoder, version int16) error {
 	tmpErr, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -96,23 +96,23 @@ func (r *DeleteOffsetsResponse) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (r *DeleteOffsetsResponse) key() int16 {
+func (r *DeleteOffsetsResponse) APIKey() int16 {
 	return 47
 }
 
-func (r *DeleteOffsetsResponse) version() int16 {
+func (r *DeleteOffsetsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DeleteOffsetsResponse) headerVersion() int16 {
+func (r *DeleteOffsetsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *DeleteOffsetsResponse) isValidVersion() bool {
+func (r *DeleteOffsetsResponse) IsValidVersion() bool {
 	return r.Version == 0
 }
 
-func (r *DeleteOffsetsResponse) requiredVersion() KafkaVersion {
+func (r *DeleteOffsetsResponse) RequiredVersion() KafkaVersion {
 	return V2_4_0_0
 }
 

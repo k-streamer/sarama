@@ -31,7 +31,7 @@ var (
 
 func testDecode(t *testing.T, tp string, key []byte, value []byte) ControlRecord {
 	controlRecord := ControlRecord{}
-	err := controlRecord.decode(&realDecoder{raw: key}, &realDecoder{raw: value})
+	err := controlRecord.decode(&RealDecoder{Raw: key}, &RealDecoder{Raw: value})
 	if err != nil {
 		t.Error("Decoding control record of type " + tp + " failed")
 		return ControlRecord{}

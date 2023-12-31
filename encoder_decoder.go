@@ -8,25 +8,25 @@ import (
 
 // Encoder is the interface that wraps the basic Encode method.
 // Anything implementing Encoder can be turned into bytes using Kafka's encoding rules.
-type encoder interface {
-	encode(pe packetEncoder) error
+type Encoder interface {
+	Encode(pe packetEncoder) error
 }
 
-type encoderWithHeader interface {
-	encoder
-	headerVersion() int16
+type EncoderWithHeader interface {
+	Encoder
+	HeaderVersion() int16
 }
 
 // Encode takes an Encoder and turns it into bytes while potentially recording metrics.
-func encode(e encoder, metricRegistry metrics.Registry) ([]byte, error) {
+func Encode(e Encoder, metricRegistry metrics.Registry) ([]byte, error) {
 	if e == nil {
 		return nil, nil
 	}
 
 	var prepEnc prepEncoder
-	var realEnc realEncoder
+	var realEnc RealEncoder
 
-	err := e.encode(&prepEnc)
+	err := e.Encode(&prepEnc)
 	if err != nil {
 		return nil, err
 	}
@@ -35,38 +35,39 @@ func encode(e encoder, metricRegistry metrics.Registry) ([]byte, error) {
 		return nil, PacketEncodingError{fmt.Sprintf("invalid request size (%d)", prepEnc.length)}
 	}
 
-	realEnc.raw = make([]byte, prepEnc.length)
+	realEnc.Raw = make([]byte, prepEnc.length)
+	fmt.Println("Prep encoder length:", prepEnc.length)
 	realEnc.registry = metricRegistry
-	err = e.encode(&realEnc)
+	err = e.Encode(&realEnc)
 	if err != nil {
 		return nil, err
 	}
 
-	return realEnc.raw, nil
+	return realEnc.Raw, nil
 }
 
-// decoder is the interface that wraps the basic Decode method.
+// Decoder is the interface that wraps the basic Decode method.
 // Anything implementing Decoder can be extracted from bytes using Kafka's encoding rules.
-type decoder interface {
-	decode(pd packetDecoder) error
+type Decoder interface {
+	Decode(pd packetDecoder) error
 }
 
-type versionedDecoder interface {
-	decode(pd packetDecoder, version int16) error
+type VersionedDecoder interface {
+	Decode(pd packetDecoder, version int16) error
 }
 
-// decode takes bytes and a decoder and fills the fields of the decoder from the bytes,
+// Decode takes bytes and a Decoder and fills the fields of the Decoder from the bytes,
 // interpreted using Kafka's encoding rules.
-func decode(buf []byte, in decoder, metricRegistry metrics.Registry) error {
+func Decode(buf []byte, in Decoder, metricRegistry metrics.Registry) error {
 	if buf == nil {
 		return nil
 	}
 
-	helper := realDecoder{
-		raw:      buf,
+	helper := RealDecoder{
+		Raw:      buf,
 		registry: metricRegistry,
 	}
-	err := in.decode(&helper)
+	err := in.Decode(&helper)
 	if err != nil {
 		return err
 	}
@@ -78,16 +79,16 @@ func decode(buf []byte, in decoder, metricRegistry metrics.Registry) error {
 	return nil
 }
 
-func versionedDecode(buf []byte, in versionedDecoder, version int16, metricRegistry metrics.Registry) error {
+func VersionedDecode(buf []byte, in VersionedDecoder, version int16, metricRegistry metrics.Registry) error {
 	if buf == nil {
 		return nil
 	}
 
-	helper := realDecoder{
-		raw:      buf,
+	helper := RealDecoder{
+		Raw:      buf,
 		registry: metricRegistry,
 	}
-	err := in.decode(&helper, version)
+	err := in.Decode(&helper, version)
 	if err != nil {
 		return err
 	}

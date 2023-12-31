@@ -10,7 +10,7 @@ type TxnOffsetCommitResponse struct {
 	Topics       map[string][]*PartitionError
 }
 
-func (t *TxnOffsetCommitResponse) encode(pe packetEncoder) error {
+func (t *TxnOffsetCommitResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(t.ThrottleTime / time.Millisecond))
 	if err := pe.putArrayLength(len(t.Topics)); err != nil {
 		return err
@@ -24,7 +24,7 @@ func (t *TxnOffsetCommitResponse) encode(pe packetEncoder) error {
 			return err
 		}
 		for _, partitionError := range e {
-			if err := partitionError.encode(pe); err != nil {
+			if err := partitionError.Encode(pe); err != nil {
 				return err
 			}
 		}
@@ -33,7 +33,7 @@ func (t *TxnOffsetCommitResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (t *TxnOffsetCommitResponse) decode(pd packetDecoder, version int16) (err error) {
+func (t *TxnOffsetCommitResponse) Decode(pd packetDecoder, version int16) (err error) {
 	t.Version = version
 	throttleTime, err := pd.getInt32()
 	if err != nil {
@@ -63,7 +63,7 @@ func (t *TxnOffsetCommitResponse) decode(pd packetDecoder, version int16) (err e
 
 		for j := 0; j < m; j++ {
 			t.Topics[topic][j] = new(PartitionError)
-			if err := t.Topics[topic][j].decode(pd, version); err != nil {
+			if err := t.Topics[topic][j].Decode(pd, version); err != nil {
 				return err
 			}
 		}
@@ -72,23 +72,23 @@ func (t *TxnOffsetCommitResponse) decode(pd packetDecoder, version int16) (err e
 	return nil
 }
 
-func (a *TxnOffsetCommitResponse) key() int16 {
+func (a *TxnOffsetCommitResponse) APIKey() int16 {
 	return 28
 }
 
-func (a *TxnOffsetCommitResponse) version() int16 {
+func (a *TxnOffsetCommitResponse) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *TxnOffsetCommitResponse) headerVersion() int16 {
+func (a *TxnOffsetCommitResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (a *TxnOffsetCommitResponse) isValidVersion() bool {
+func (a *TxnOffsetCommitResponse) IsValidVersion() bool {
 	return a.Version >= 0 && a.Version <= 2
 }
 
-func (a *TxnOffsetCommitResponse) requiredVersion() KafkaVersion {
+func (a *TxnOffsetCommitResponse) RequiredVersion() KafkaVersion {
 	switch a.Version {
 	case 2:
 		return V2_1_0_0

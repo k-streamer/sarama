@@ -13,7 +13,7 @@ type FindCoordinatorRequest struct {
 	CoordinatorType CoordinatorType
 }
 
-func (f *FindCoordinatorRequest) encode(pe packetEncoder) error {
+func (f *FindCoordinatorRequest) Encode(pe packetEncoder) error {
 	if err := pe.putString(f.CoordinatorKey); err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func (f *FindCoordinatorRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (f *FindCoordinatorRequest) decode(pd packetDecoder, version int16) (err error) {
+func (f *FindCoordinatorRequest) Decode(pd packetDecoder, version int16) (err error) {
 	if f.CoordinatorKey, err = pd.getString(); err != nil {
 		return err
 	}
@@ -43,23 +43,23 @@ func (f *FindCoordinatorRequest) decode(pd packetDecoder, version int16) (err er
 	return nil
 }
 
-func (f *FindCoordinatorRequest) key() int16 {
+func (f *FindCoordinatorRequest) APIKey() int16 {
 	return 10
 }
 
-func (f *FindCoordinatorRequest) version() int16 {
+func (f *FindCoordinatorRequest) APIVersion() int16 {
 	return f.Version
 }
 
-func (r *FindCoordinatorRequest) headerVersion() int16 {
+func (r *FindCoordinatorRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (f *FindCoordinatorRequest) isValidVersion() bool {
+func (f *FindCoordinatorRequest) IsValidVersion() bool {
 	return f.Version >= 0 && f.Version <= 2
 }
 
-func (f *FindCoordinatorRequest) requiredVersion() KafkaVersion {
+func (f *FindCoordinatorRequest) RequiredVersion() KafkaVersion {
 	switch f.Version {
 	case 2:
 		return V2_0_0_0

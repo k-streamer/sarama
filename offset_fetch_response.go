@@ -9,7 +9,7 @@ type OffsetFetchResponseBlock struct {
 	Err         KError
 }
 
-func (b *OffsetFetchResponseBlock) decode(pd packetDecoder, version int16) (err error) {
+func (b *OffsetFetchResponseBlock) Decode(pd packetDecoder, version int16) (err error) {
 	isFlexible := version >= 6
 
 	b.Offset, err = pd.getInt64()
@@ -82,7 +82,7 @@ type OffsetFetchResponse struct {
 	Err            KError
 }
 
-func (r *OffsetFetchResponse) encode(pe packetEncoder) (err error) {
+func (r *OffsetFetchResponse) Encode(pe packetEncoder) (err error) {
 	isFlexible := r.Version >= 6
 
 	if r.Version >= 3 {
@@ -134,7 +134,7 @@ func (r *OffsetFetchResponse) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *OffsetFetchResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *OffsetFetchResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	isFlexible := version >= 6
 
@@ -189,7 +189,7 @@ func (r *OffsetFetchResponse) decode(pd packetDecoder, version int16) (err error
 				}
 
 				block := new(OffsetFetchResponseBlock)
-				err = block.decode(pd, version)
+				err = block.Decode(pd, version)
 				if err != nil {
 					return err
 				}
@@ -222,15 +222,15 @@ func (r *OffsetFetchResponse) decode(pd packetDecoder, version int16) (err error
 	return nil
 }
 
-func (r *OffsetFetchResponse) key() int16 {
+func (r *OffsetFetchResponse) APIKey() int16 {
 	return 9
 }
 
-func (r *OffsetFetchResponse) version() int16 {
+func (r *OffsetFetchResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *OffsetFetchResponse) headerVersion() int16 {
+func (r *OffsetFetchResponse) HeaderVersion() int16 {
 	if r.Version >= 6 {
 		return 1
 	}
@@ -238,11 +238,11 @@ func (r *OffsetFetchResponse) headerVersion() int16 {
 	return 0
 }
 
-func (r *OffsetFetchResponse) isValidVersion() bool {
+func (r *OffsetFetchResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 7
 }
 
-func (r *OffsetFetchResponse) requiredVersion() KafkaVersion {
+func (r *OffsetFetchResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 7:
 		return V2_5_0_0

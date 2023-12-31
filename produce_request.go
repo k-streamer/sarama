@@ -65,7 +65,7 @@ func updateBatchMetrics(recordBatch *RecordBatch, compressionRatioMetric metrics
 	return int64(len(recordBatch.Records))
 }
 
-func (r *ProduceRequest) encode(pe packetEncoder) error {
+func (r *ProduceRequest) Encode(pe packetEncoder) error {
 	if r.Version >= 3 {
 		if err := pe.putNullableString(r.TransactionalID); err != nil {
 			return err
@@ -105,7 +105,7 @@ func (r *ProduceRequest) encode(pe packetEncoder) error {
 			startOffset := pe.offset()
 			pe.putInt32(id)
 			pe.push(&lengthField{})
-			err = records.encode(pe)
+			err = records.Encode(pe)
 			if err != nil {
 				return err
 			}
@@ -138,7 +138,7 @@ func (r *ProduceRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *ProduceRequest) decode(pd packetDecoder, version int16) error {
+func (r *ProduceRequest) Decode(pd packetDecoder, version int16) error {
 	r.Version = version
 
 	if version >= 3 {
@@ -190,7 +190,7 @@ func (r *ProduceRequest) decode(pd packetDecoder, version int16) error {
 				return err
 			}
 			var records Records
-			if err := records.decode(recordsDecoder); err != nil {
+			if err := records.Decode(recordsDecoder); err != nil {
 				return err
 			}
 			r.records[topic][partition] = records
@@ -200,23 +200,23 @@ func (r *ProduceRequest) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (r *ProduceRequest) key() int16 {
+func (r *ProduceRequest) APIKey() int16 {
 	return 0
 }
 
-func (r *ProduceRequest) version() int16 {
+func (r *ProduceRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *ProduceRequest) headerVersion() int16 {
+func (r *ProduceRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *ProduceRequest) isValidVersion() bool {
+func (r *ProduceRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 7
 }
 
-func (r *ProduceRequest) requiredVersion() KafkaVersion {
+func (r *ProduceRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 7:
 		return V2_1_0_0

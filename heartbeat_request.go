@@ -8,7 +8,7 @@ type HeartbeatRequest struct {
 	GroupInstanceId *string
 }
 
-func (r *HeartbeatRequest) encode(pe packetEncoder) error {
+func (r *HeartbeatRequest) Encode(pe packetEncoder) error {
 	if err := pe.putString(r.GroupId); err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func (r *HeartbeatRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *HeartbeatRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *HeartbeatRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.GroupId, err = pd.getString(); err != nil {
 		return
@@ -48,23 +48,23 @@ func (r *HeartbeatRequest) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (r *HeartbeatRequest) key() int16 {
+func (r *HeartbeatRequest) APIKey() int16 {
 	return 12
 }
 
-func (r *HeartbeatRequest) version() int16 {
+func (r *HeartbeatRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *HeartbeatRequest) headerVersion() int16 {
+func (r *HeartbeatRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *HeartbeatRequest) isValidVersion() bool {
+func (r *HeartbeatRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 3
 }
 
-func (r *HeartbeatRequest) requiredVersion() KafkaVersion {
+func (r *HeartbeatRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 3:
 		return V2_3_0_0

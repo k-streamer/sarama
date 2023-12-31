@@ -14,7 +14,7 @@ type DescribeUserScramCredentialsRequestUser struct {
 	Name string
 }
 
-func (r *DescribeUserScramCredentialsRequest) encode(pe packetEncoder) error {
+func (r *DescribeUserScramCredentialsRequest) Encode(pe packetEncoder) error {
 	pe.putCompactArrayLength(len(r.DescribeUsers))
 	for _, d := range r.DescribeUsers {
 		if err := pe.putCompactString(d.Name); err != nil {
@@ -27,7 +27,7 @@ func (r *DescribeUserScramCredentialsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DescribeUserScramCredentialsRequest) decode(pd packetDecoder, version int16) error {
+func (r *DescribeUserScramCredentialsRequest) Decode(pd packetDecoder, version int16) error {
 	n, err := pd.getCompactArrayLength()
 	if err != nil {
 		return err
@@ -53,22 +53,22 @@ func (r *DescribeUserScramCredentialsRequest) decode(pd packetDecoder, version i
 	return nil
 }
 
-func (r *DescribeUserScramCredentialsRequest) key() int16 {
+func (r *DescribeUserScramCredentialsRequest) APIKey() int16 {
 	return 50
 }
 
-func (r *DescribeUserScramCredentialsRequest) version() int16 {
+func (r *DescribeUserScramCredentialsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DescribeUserScramCredentialsRequest) headerVersion() int16 {
+func (r *DescribeUserScramCredentialsRequest) HeaderVersion() int16 {
 	return 2
 }
 
-func (r *DescribeUserScramCredentialsRequest) isValidVersion() bool {
+func (r *DescribeUserScramCredentialsRequest) IsValidVersion() bool {
 	return r.Version == 0
 }
 
-func (r *DescribeUserScramCredentialsRequest) requiredVersion() KafkaVersion {
+func (r *DescribeUserScramCredentialsRequest) RequiredVersion() KafkaVersion {
 	return V2_7_0_0
 }

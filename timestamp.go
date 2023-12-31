@@ -9,7 +9,7 @@ type Timestamp struct {
 	*time.Time
 }
 
-func (t Timestamp) encode(pe packetEncoder) error {
+func (t Timestamp) Encode(pe packetEncoder) error {
 	timestamp := int64(-1)
 
 	if !t.Before(time.Unix(0, 0)) {
@@ -22,7 +22,7 @@ func (t Timestamp) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (t Timestamp) decode(pd packetDecoder) error {
+func (t Timestamp) Decode(pd packetDecoder) error {
 	millis, err := pd.getInt64()
 	if err != nil {
 		return err

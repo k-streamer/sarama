@@ -11,7 +11,7 @@ type AclFilter struct {
 	PermissionType            AclPermissionType
 }
 
-func (a *AclFilter) encode(pe packetEncoder) error {
+func (a *AclFilter) Encode(pe packetEncoder) error {
 	pe.putInt8(int8(a.ResourceType))
 	if err := pe.putNullableString(a.ResourceName); err != nil {
 		return err
@@ -33,7 +33,7 @@ func (a *AclFilter) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AclFilter) decode(pd packetDecoder, version int16) (err error) {
+func (a *AclFilter) Decode(pd packetDecoder, version int16) (err error) {
 	resourceType, err := pd.getInt8()
 	if err != nil {
 		return err

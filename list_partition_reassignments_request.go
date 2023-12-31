@@ -6,7 +6,7 @@ type ListPartitionReassignmentsRequest struct {
 	Version   int16
 }
 
-func (r *ListPartitionReassignmentsRequest) encode(pe packetEncoder) error {
+func (r *ListPartitionReassignmentsRequest) Encode(pe packetEncoder) error {
 	pe.putInt32(r.TimeoutMs)
 
 	pe.putCompactArrayLength(len(r.blocks))
@@ -28,7 +28,7 @@ func (r *ListPartitionReassignmentsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *ListPartitionReassignmentsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *ListPartitionReassignmentsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 
 	if r.TimeoutMs, err = pd.getInt32(); err != nil {
@@ -71,23 +71,23 @@ func (r *ListPartitionReassignmentsRequest) decode(pd packetDecoder, version int
 	return
 }
 
-func (r *ListPartitionReassignmentsRequest) key() int16 {
+func (r *ListPartitionReassignmentsRequest) APIKey() int16 {
 	return 46
 }
 
-func (r *ListPartitionReassignmentsRequest) version() int16 {
+func (r *ListPartitionReassignmentsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *ListPartitionReassignmentsRequest) headerVersion() int16 {
+func (r *ListPartitionReassignmentsRequest) HeaderVersion() int16 {
 	return 2
 }
 
-func (r *ListPartitionReassignmentsRequest) isValidVersion() bool {
+func (r *ListPartitionReassignmentsRequest) IsValidVersion() bool {
 	return r.Version == 0
 }
 
-func (r *ListPartitionReassignmentsRequest) requiredVersion() KafkaVersion {
+func (r *ListPartitionReassignmentsRequest) RequiredVersion() KafkaVersion {
 	return V2_4_0_0
 }
 

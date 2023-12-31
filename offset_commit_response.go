@@ -20,7 +20,7 @@ func (r *OffsetCommitResponse) AddError(topic string, partition int32, kerror KE
 	partitions[partition] = kerror
 }
 
-func (r *OffsetCommitResponse) encode(pe packetEncoder) error {
+func (r *OffsetCommitResponse) Encode(pe packetEncoder) error {
 	if r.Version >= 3 {
 		pe.putInt32(r.ThrottleTimeMs)
 	}
@@ -42,7 +42,7 @@ func (r *OffsetCommitResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *OffsetCommitResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *OffsetCommitResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 
 	if version >= 3 {
@@ -88,23 +88,23 @@ func (r *OffsetCommitResponse) decode(pd packetDecoder, version int16) (err erro
 	return nil
 }
 
-func (r *OffsetCommitResponse) key() int16 {
+func (r *OffsetCommitResponse) APIKey() int16 {
 	return 8
 }
 
-func (r *OffsetCommitResponse) version() int16 {
+func (r *OffsetCommitResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *OffsetCommitResponse) headerVersion() int16 {
+func (r *OffsetCommitResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *OffsetCommitResponse) isValidVersion() bool {
+func (r *OffsetCommitResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 7
 }
 
-func (r *OffsetCommitResponse) requiredVersion() KafkaVersion {
+func (r *OffsetCommitResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 7:
 		return V2_3_0_0

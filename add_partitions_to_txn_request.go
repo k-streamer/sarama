@@ -9,7 +9,7 @@ type AddPartitionsToTxnRequest struct {
 	TopicPartitions map[string][]int32
 }
 
-func (a *AddPartitionsToTxnRequest) encode(pe packetEncoder) error {
+func (a *AddPartitionsToTxnRequest) Encode(pe packetEncoder) error {
 	if err := pe.putString(a.TransactionalID); err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func (a *AddPartitionsToTxnRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AddPartitionsToTxnRequest) decode(pd packetDecoder, version int16) (err error) {
+func (a *AddPartitionsToTxnRequest) Decode(pd packetDecoder, version int16) (err error) {
 	if a.TransactionalID, err = pd.getString(); err != nil {
 		return err
 	}
@@ -65,23 +65,23 @@ func (a *AddPartitionsToTxnRequest) decode(pd packetDecoder, version int16) (err
 	return nil
 }
 
-func (a *AddPartitionsToTxnRequest) key() int16 {
+func (a *AddPartitionsToTxnRequest) APIKey() int16 {
 	return 24
 }
 
-func (a *AddPartitionsToTxnRequest) version() int16 {
+func (a *AddPartitionsToTxnRequest) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *AddPartitionsToTxnRequest) headerVersion() int16 {
+func (a *AddPartitionsToTxnRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (a *AddPartitionsToTxnRequest) isValidVersion() bool {
+func (a *AddPartitionsToTxnRequest) IsValidVersion() bool {
 	return a.Version >= 0 && a.Version <= 2
 }
 
-func (a *AddPartitionsToTxnRequest) requiredVersion() KafkaVersion {
+func (a *AddPartitionsToTxnRequest) RequiredVersion() KafkaVersion {
 	switch a.Version {
 	case 2:
 		return V2_7_0_0

@@ -79,7 +79,7 @@ type Message struct {
 	compressedSize  int // used for computing the compression ratio metrics
 }
 
-func (m *Message) encode(pe packetEncoder) error {
+func (m *Message) Encode(pe packetEncoder) error {
 	pe.push(newCRC32Field(crcIEEE))
 
 	pe.putInt8(m.Version)
@@ -91,7 +91,7 @@ func (m *Message) encode(pe packetEncoder) error {
 	pe.putInt8(attributes)
 
 	if m.Version >= 1 {
-		if err := (Timestamp{&m.Timestamp}).encode(pe); err != nil {
+		if err := (Timestamp{&m.Timestamp}).Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -123,7 +123,7 @@ func (m *Message) encode(pe packetEncoder) error {
 	return pe.pop()
 }
 
-func (m *Message) decode(pd packetDecoder) (err error) {
+func (m *Message) Decode(pd packetDecoder) (err error) {
 	crc32Decoder := acquireCrc32Field(crcIEEE)
 	defer releaseCrc32Field(crc32Decoder)
 
@@ -149,7 +149,7 @@ func (m *Message) decode(pd packetDecoder) (err error) {
 	m.LogAppendTime = attribute&timestampTypeMask == timestampTypeMask
 
 	if m.Version == 1 {
-		if err := (Timestamp{&m.Timestamp}).decode(pd); err != nil {
+		if err := (Timestamp{&m.Timestamp}).Decode(pd); err != nil {
 			return err
 		}
 	}
@@ -184,7 +184,7 @@ func (m *Message) decode(pd packetDecoder) (err error) {
 
 // decodes a message set from a previously encoded bulk-message
 func (m *Message) decodeSet() (err error) {
-	pd := realDecoder{raw: m.Value}
+	pd := RealDecoder{Raw: m.Value}
 	m.Set = &MessageSet{}
-	return m.Set.decode(&pd)
+	return m.Set.Decode(&pd)
 }

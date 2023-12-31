@@ -36,7 +36,7 @@ func (r *JoinGroupResponse) GetMembers() (map[string]ConsumerGroupMemberMetadata
 	members := make(map[string]ConsumerGroupMemberMetadata, len(r.Members))
 	for _, member := range r.Members {
 		meta := new(ConsumerGroupMemberMetadata)
-		if err := decode(member.Metadata, meta, nil); err != nil {
+		if err := Decode(member.Metadata, meta, nil); err != nil {
 			return nil, err
 		}
 		members[member.MemberId] = *meta
@@ -44,7 +44,7 @@ func (r *JoinGroupResponse) GetMembers() (map[string]ConsumerGroupMemberMetadata
 	return members, nil
 }
 
-func (r *JoinGroupResponse) encode(pe packetEncoder) error {
+func (r *JoinGroupResponse) Encode(pe packetEncoder) error {
 	if r.Version >= 2 {
 		pe.putInt32(r.ThrottleTime)
 	}
@@ -82,7 +82,7 @@ func (r *JoinGroupResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *JoinGroupResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *JoinGroupResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 
 	if version >= 2 {
@@ -148,23 +148,23 @@ func (r *JoinGroupResponse) decode(pd packetDecoder, version int16) (err error) 
 	return nil
 }
 
-func (r *JoinGroupResponse) key() int16 {
+func (r *JoinGroupResponse) APIKey() int16 {
 	return 11
 }
 
-func (r *JoinGroupResponse) version() int16 {
+func (r *JoinGroupResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *JoinGroupResponse) headerVersion() int16 {
+func (r *JoinGroupResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *JoinGroupResponse) isValidVersion() bool {
+func (r *JoinGroupResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 5
 }
 
-func (r *JoinGroupResponse) requiredVersion() KafkaVersion {
+func (r *JoinGroupResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 5:
 		return V2_3_0_0

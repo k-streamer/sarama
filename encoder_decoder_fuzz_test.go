@@ -19,11 +19,11 @@ func FuzzDecodeEncodeProduceRequest(f *testing.F) {
 	f.Fuzz(func(t *testing.T, in []byte) {
 		for i := int16(0); i < 8; i++ {
 			req := &ProduceRequest{}
-			err := versionedDecode(in, req, i, nil)
+			err := VersionedDecode(in, req, i, nil)
 			if err != nil {
 				continue
 			}
-			out, err := encode(req, nil)
+			out, err := Encode(req, nil)
 			if err != nil {
 				t.Logf("%v: encode: %v", in, err)
 				continue
@@ -48,11 +48,11 @@ func FuzzDecodeEncodeFetchRequest(f *testing.F) {
 	f.Fuzz(func(t *testing.T, in []byte) {
 		for i := int16(0); i < 11; i++ {
 			req := &FetchRequest{}
-			err := versionedDecode(in, req, i, nil)
+			err := VersionedDecode(in, req, i, nil)
 			if err != nil {
 				continue
 			}
-			out, err := encode(req, nil)
+			out, err := Encode(req, nil)
 			if err != nil {
 				t.Logf("%v: encode: %v", in, err)
 				continue

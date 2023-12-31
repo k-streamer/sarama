@@ -11,13 +11,13 @@ type AddOffsetsToTxnResponse struct {
 	Err          KError
 }
 
-func (a *AddOffsetsToTxnResponse) encode(pe packetEncoder) error {
+func (a *AddOffsetsToTxnResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(a.ThrottleTime / time.Millisecond))
 	pe.putInt16(int16(a.Err))
 	return nil
 }
 
-func (a *AddOffsetsToTxnResponse) decode(pd packetDecoder, version int16) (err error) {
+func (a *AddOffsetsToTxnResponse) Decode(pd packetDecoder, version int16) (err error) {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -33,23 +33,23 @@ func (a *AddOffsetsToTxnResponse) decode(pd packetDecoder, version int16) (err e
 	return nil
 }
 
-func (a *AddOffsetsToTxnResponse) key() int16 {
+func (a *AddOffsetsToTxnResponse) APIKey() int16 {
 	return 25
 }
 
-func (a *AddOffsetsToTxnResponse) version() int16 {
+func (a *AddOffsetsToTxnResponse) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *AddOffsetsToTxnResponse) headerVersion() int16 {
+func (a *AddOffsetsToTxnResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (a *AddOffsetsToTxnResponse) isValidVersion() bool {
+func (a *AddOffsetsToTxnResponse) IsValidVersion() bool {
 	return a.Version >= 0 && a.Version <= 2
 }
 
-func (a *AddOffsetsToTxnResponse) requiredVersion() KafkaVersion {
+func (a *AddOffsetsToTxnResponse) RequiredVersion() KafkaVersion {
 	switch a.Version {
 	case 2:
 		return V2_7_0_0

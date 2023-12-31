@@ -26,13 +26,13 @@ type QuotaFilterComponent struct {
 	Match      string
 }
 
-func (d *DescribeClientQuotasRequest) encode(pe packetEncoder) error {
+func (d *DescribeClientQuotasRequest) Encode(pe packetEncoder) error {
 	// Components
 	if err := pe.putArrayLength(len(d.Components)); err != nil {
 		return err
 	}
 	for _, c := range d.Components {
-		if err := c.encode(pe); err != nil {
+		if err := c.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -43,7 +43,7 @@ func (d *DescribeClientQuotasRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (d *DescribeClientQuotasRequest) decode(pd packetDecoder, version int16) error {
+func (d *DescribeClientQuotasRequest) Decode(pd packetDecoder, version int16) error {
 	// Components
 	componentCount, err := pd.getArrayLength()
 	if err != nil {
@@ -53,7 +53,7 @@ func (d *DescribeClientQuotasRequest) decode(pd packetDecoder, version int16) er
 		d.Components = make([]QuotaFilterComponent, componentCount)
 		for i := range d.Components {
 			c := QuotaFilterComponent{}
-			if err = c.decode(pd, version); err != nil {
+			if err = c.Decode(pd, version); err != nil {
 				return err
 			}
 			d.Components[i] = c
@@ -72,7 +72,7 @@ func (d *DescribeClientQuotasRequest) decode(pd packetDecoder, version int16) er
 	return nil
 }
 
-func (d *QuotaFilterComponent) encode(pe packetEncoder) error {
+func (d *QuotaFilterComponent) Encode(pe packetEncoder) error {
 	// EntityType
 	if err := pe.putString(string(d.EntityType)); err != nil {
 		return err
@@ -99,7 +99,7 @@ func (d *QuotaFilterComponent) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (d *QuotaFilterComponent) decode(pd packetDecoder, version int16) error {
+func (d *QuotaFilterComponent) Decode(pd packetDecoder, version int16) error {
 	// EntityType
 	entityType, err := pd.getString()
 	if err != nil {
@@ -125,22 +125,22 @@ func (d *QuotaFilterComponent) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (d *DescribeClientQuotasRequest) key() int16 {
+func (d *DescribeClientQuotasRequest) APIKey() int16 {
 	return 48
 }
 
-func (d *DescribeClientQuotasRequest) version() int16 {
+func (d *DescribeClientQuotasRequest) APIVersion() int16 {
 	return d.Version
 }
 
-func (d *DescribeClientQuotasRequest) headerVersion() int16 {
+func (d *DescribeClientQuotasRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (d *DescribeClientQuotasRequest) isValidVersion() bool {
+func (d *DescribeClientQuotasRequest) IsValidVersion() bool {
 	return d.Version == 0
 }
 
-func (d *DescribeClientQuotasRequest) requiredVersion() KafkaVersion {
+func (d *DescribeClientQuotasRequest) RequiredVersion() KafkaVersion {
 	return V2_6_0_0
 }

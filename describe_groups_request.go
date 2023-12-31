@@ -6,7 +6,7 @@ type DescribeGroupsRequest struct {
 	IncludeAuthorizedOperations bool
 }
 
-func (r *DescribeGroupsRequest) encode(pe packetEncoder) error {
+func (r *DescribeGroupsRequest) Encode(pe packetEncoder) error {
 	if err := pe.putStringArray(r.Groups); err != nil {
 		return err
 	}
@@ -16,7 +16,7 @@ func (r *DescribeGroupsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DescribeGroupsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (r *DescribeGroupsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	r.Groups, err = pd.getStringArray()
 	if err != nil {
@@ -30,23 +30,23 @@ func (r *DescribeGroupsRequest) decode(pd packetDecoder, version int16) (err err
 	return nil
 }
 
-func (r *DescribeGroupsRequest) key() int16 {
+func (r *DescribeGroupsRequest) APIKey() int16 {
 	return 15
 }
 
-func (r *DescribeGroupsRequest) version() int16 {
+func (r *DescribeGroupsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DescribeGroupsRequest) headerVersion() int16 {
+func (r *DescribeGroupsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *DescribeGroupsRequest) isValidVersion() bool {
+func (r *DescribeGroupsRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 4
 }
 
-func (r *DescribeGroupsRequest) requiredVersion() KafkaVersion {
+func (r *DescribeGroupsRequest) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 4:
 		return V2_4_0_0

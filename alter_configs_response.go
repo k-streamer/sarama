@@ -17,7 +17,7 @@ type AlterConfigsResourceResponse struct {
 	Name      string
 }
 
-func (a *AlterConfigsResponse) encode(pe packetEncoder) error {
+func (a *AlterConfigsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(a.ThrottleTime / time.Millisecond))
 
 	if err := pe.putArrayLength(len(a.Resources)); err != nil {
@@ -25,7 +25,7 @@ func (a *AlterConfigsResponse) encode(pe packetEncoder) error {
 	}
 
 	for _, v := range a.Resources {
-		if err := v.encode(pe); err != nil {
+		if err := v.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -33,7 +33,7 @@ func (a *AlterConfigsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AlterConfigsResponse) decode(pd packetDecoder, version int16) error {
+func (a *AlterConfigsResponse) Decode(pd packetDecoder, version int16) error {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -50,7 +50,7 @@ func (a *AlterConfigsResponse) decode(pd packetDecoder, version int16) error {
 	for i := range a.Resources {
 		a.Resources[i] = new(AlterConfigsResourceResponse)
 
-		if err := a.Resources[i].decode(pd, version); err != nil {
+		if err := a.Resources[i].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -58,7 +58,7 @@ func (a *AlterConfigsResponse) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (a *AlterConfigsResourceResponse) encode(pe packetEncoder) error {
+func (a *AlterConfigsResourceResponse) Encode(pe packetEncoder) error {
 	pe.putInt16(a.ErrorCode)
 	err := pe.putString(a.ErrorMsg)
 	if err != nil {
@@ -72,7 +72,7 @@ func (a *AlterConfigsResourceResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (a *AlterConfigsResourceResponse) decode(pd packetDecoder, version int16) error {
+func (a *AlterConfigsResourceResponse) Decode(pd packetDecoder, version int16) error {
 	errCode, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -100,23 +100,23 @@ func (a *AlterConfigsResourceResponse) decode(pd packetDecoder, version int16) e
 	return nil
 }
 
-func (a *AlterConfigsResponse) key() int16 {
+func (a *AlterConfigsResponse) APIKey() int16 {
 	return 33
 }
 
-func (a *AlterConfigsResponse) version() int16 {
+func (a *AlterConfigsResponse) APIVersion() int16 {
 	return a.Version
 }
 
-func (a *AlterConfigsResponse) headerVersion() int16 {
+func (a *AlterConfigsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (a *AlterConfigsResponse) isValidVersion() bool {
+func (a *AlterConfigsResponse) IsValidVersion() bool {
 	return a.Version >= 0 && a.Version <= 1
 }
 
-func (a *AlterConfigsResponse) requiredVersion() KafkaVersion {
+func (a *AlterConfigsResponse) RequiredVersion() KafkaVersion {
 	switch a.Version {
 	case 1:
 		return V2_0_0_0

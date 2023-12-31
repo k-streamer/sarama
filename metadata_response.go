@@ -22,7 +22,7 @@ type PartitionMetadata struct {
 	OfflineReplicas []int32
 }
 
-func (p *PartitionMetadata) decode(pd packetDecoder, version int16) (err error) {
+func (p *PartitionMetadata) Decode(pd packetDecoder, version int16) (err error) {
 	p.Version = version
 	tmp, err := pd.getInt16()
 	if err != nil {
@@ -147,7 +147,7 @@ type TopicMetadata struct {
 	TopicAuthorizedOperations int32 // Only valid for Version >= 8
 }
 
-func (t *TopicMetadata) decode(pd packetDecoder, version int16) (err error) {
+func (t *TopicMetadata) Decode(pd packetDecoder, version int16) (err error) {
 	t.Version = version
 	tmp, err := pd.getInt16()
 	if err != nil {
@@ -194,7 +194,7 @@ func (t *TopicMetadata) decode(pd packetDecoder, version int16) (err error) {
 		t.Partitions = make([]*PartitionMetadata, n)
 		for i := 0; i < n; i++ {
 			block := &PartitionMetadata{}
-			if err := block.decode(pd, t.Version); err != nil {
+			if err := block.Decode(pd, t.Version); err != nil {
 				return err
 			}
 			t.Partitions[i] = block
@@ -283,7 +283,7 @@ type MetadataResponse struct {
 	ClusterAuthorizedOperations int32 // Only valid for Version >= 8
 }
 
-func (r *MetadataResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *MetadataResponse) Decode(pd packetDecoder, version int16) (err error) {
 	r.Version = version
 	if r.Version >= 3 {
 		if r.ThrottleTimeMs, err = pd.getInt32(); err != nil {
@@ -304,7 +304,7 @@ func (r *MetadataResponse) decode(pd packetDecoder, version int16) (err error) {
 	r.Brokers = make([]*Broker, brokerArrayLen)
 	for i := 0; i < brokerArrayLen; i++ {
 		r.Brokers[i] = new(Broker)
-		err = r.Brokers[i].decode(pd, version)
+		err = r.Brokers[i].Decode(pd, version)
 		if err != nil {
 			return err
 		}
@@ -340,7 +340,7 @@ func (r *MetadataResponse) decode(pd packetDecoder, version int16) (err error) {
 	r.Topics = make([]*TopicMetadata, topicArrayLen)
 	for i := 0; i < topicArrayLen; i++ {
 		r.Topics[i] = new(TopicMetadata)
-		err = r.Topics[i].decode(pd, version)
+		err = r.Topics[i].Decode(pd, version)
 		if err != nil {
 			return err
 		}
@@ -363,7 +363,7 @@ func (r *MetadataResponse) decode(pd packetDecoder, version int16) (err error) {
 	return nil
 }
 
-func (r *MetadataResponse) encode(pe packetEncoder) (err error) {
+func (r *MetadataResponse) Encode(pe packetEncoder) (err error) {
 	if r.Version >= 3 {
 		pe.putInt32(r.ThrottleTimeMs)
 	}
@@ -427,15 +427,15 @@ func (r *MetadataResponse) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *MetadataResponse) key() int16 {
+func (r *MetadataResponse) APIKey() int16 {
 	return 3
 }
 
-func (r *MetadataResponse) version() int16 {
+func (r *MetadataResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *MetadataResponse) headerVersion() int16 {
+func (r *MetadataResponse) HeaderVersion() int16 {
 	if r.Version < 9 {
 		return 0
 	} else {
@@ -443,11 +443,11 @@ func (r *MetadataResponse) headerVersion() int16 {
 	}
 }
 
-func (r *MetadataResponse) isValidVersion() bool {
+func (r *MetadataResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 7
 }
 
-func (r *MetadataResponse) requiredVersion() KafkaVersion {
+func (r *MetadataResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 10:
 		return V2_8_0_0

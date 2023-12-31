@@ -16,7 +16,7 @@ type CreateTopicsRequest struct {
 	ValidateOnly bool
 }
 
-func (c *CreateTopicsRequest) encode(pe packetEncoder) error {
+func (c *CreateTopicsRequest) Encode(pe packetEncoder) error {
 	if err := pe.putArrayLength(len(c.TopicDetails)); err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func (c *CreateTopicsRequest) encode(pe packetEncoder) error {
 		if err := pe.putString(topic); err != nil {
 			return err
 		}
-		if err := detail.encode(pe); err != nil {
+		if err := detail.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -38,7 +38,7 @@ func (c *CreateTopicsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (c *CreateTopicsRequest) decode(pd packetDecoder, version int16) (err error) {
+func (c *CreateTopicsRequest) Decode(pd packetDecoder, version int16) (err error) {
 	n, err := pd.getArrayLength()
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func (c *CreateTopicsRequest) decode(pd packetDecoder, version int16) (err error
 			return err
 		}
 		c.TopicDetails[topic] = new(TopicDetail)
-		if err = c.TopicDetails[topic].decode(pd, version); err != nil {
+		if err = c.TopicDetails[topic].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -75,23 +75,23 @@ func (c *CreateTopicsRequest) decode(pd packetDecoder, version int16) (err error
 	return nil
 }
 
-func (c *CreateTopicsRequest) key() int16 {
+func (c *CreateTopicsRequest) APIKey() int16 {
 	return 19
 }
 
-func (c *CreateTopicsRequest) version() int16 {
+func (c *CreateTopicsRequest) APIVersion() int16 {
 	return c.Version
 }
 
-func (r *CreateTopicsRequest) headerVersion() int16 {
+func (r *CreateTopicsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (c *CreateTopicsRequest) isValidVersion() bool {
+func (c *CreateTopicsRequest) IsValidVersion() bool {
 	return c.Version >= 0 && c.Version <= 3
 }
 
-func (c *CreateTopicsRequest) requiredVersion() KafkaVersion {
+func (c *CreateTopicsRequest) RequiredVersion() KafkaVersion {
 	switch c.Version {
 	case 3:
 		return V2_0_0_0
@@ -122,7 +122,7 @@ type TopicDetail struct {
 	ConfigEntries map[string]*string
 }
 
-func (t *TopicDetail) encode(pe packetEncoder) error {
+func (t *TopicDetail) Encode(pe packetEncoder) error {
 	pe.putInt32(t.NumPartitions)
 	pe.putInt16(t.ReplicationFactor)
 
@@ -151,7 +151,7 @@ func (t *TopicDetail) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (t *TopicDetail) decode(pd packetDecoder, version int16) (err error) {
+func (t *TopicDetail) Decode(pd packetDecoder, version int16) (err error) {
 	if t.NumPartitions, err = pd.getInt32(); err != nil {
 		return err
 	}

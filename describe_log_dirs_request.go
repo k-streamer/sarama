@@ -16,7 +16,7 @@ type DescribeLogDirsRequestTopic struct {
 	PartitionIDs []int32
 }
 
-func (r *DescribeLogDirsRequest) encode(pe packetEncoder) error {
+func (r *DescribeLogDirsRequest) Encode(pe packetEncoder) error {
 	length := len(r.DescribeTopics)
 	if length == 0 {
 		// In order to query all topics we must send null
@@ -40,7 +40,7 @@ func (r *DescribeLogDirsRequest) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DescribeLogDirsRequest) decode(pd packetDecoder, version int16) error {
+func (r *DescribeLogDirsRequest) Decode(pd packetDecoder, version int16) error {
 	n, err := pd.getArrayLength()
 	if err != nil {
 		return err
@@ -70,23 +70,23 @@ func (r *DescribeLogDirsRequest) decode(pd packetDecoder, version int16) error {
 	return nil
 }
 
-func (r *DescribeLogDirsRequest) key() int16 {
+func (r *DescribeLogDirsRequest) APIKey() int16 {
 	return 35
 }
 
-func (r *DescribeLogDirsRequest) version() int16 {
+func (r *DescribeLogDirsRequest) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DescribeLogDirsRequest) headerVersion() int16 {
+func (r *DescribeLogDirsRequest) HeaderVersion() int16 {
 	return 1
 }
 
-func (r *DescribeLogDirsRequest) isValidVersion() bool {
+func (r *DescribeLogDirsRequest) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 1
 }
 
-func (r *DescribeLogDirsRequest) requiredVersion() KafkaVersion {
+func (r *DescribeLogDirsRequest) RequiredVersion() KafkaVersion {
 	if r.Version > 0 {
 		return V2_0_0_0
 	}

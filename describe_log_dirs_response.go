@@ -12,7 +12,7 @@ type DescribeLogDirsResponse struct {
 	LogDirs []DescribeLogDirsResponseDirMetadata
 }
 
-func (r *DescribeLogDirsResponse) encode(pe packetEncoder) error {
+func (r *DescribeLogDirsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(r.ThrottleTime / time.Millisecond))
 
 	if err := pe.putArrayLength(len(r.LogDirs)); err != nil {
@@ -20,7 +20,7 @@ func (r *DescribeLogDirsResponse) encode(pe packetEncoder) error {
 	}
 
 	for _, dir := range r.LogDirs {
-		if err := dir.encode(pe); err != nil {
+		if err := dir.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -28,7 +28,7 @@ func (r *DescribeLogDirsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DescribeLogDirsResponse) decode(pd packetDecoder, version int16) error {
+func (r *DescribeLogDirsResponse) Decode(pd packetDecoder, version int16) error {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func (r *DescribeLogDirsResponse) decode(pd packetDecoder, version int16) error 
 	r.LogDirs = make([]DescribeLogDirsResponseDirMetadata, n)
 	for i := 0; i < n; i++ {
 		dir := DescribeLogDirsResponseDirMetadata{}
-		if err := dir.decode(pd, version); err != nil {
+		if err := dir.Decode(pd, version); err != nil {
 			return err
 		}
 		r.LogDirs[i] = dir
@@ -53,23 +53,23 @@ func (r *DescribeLogDirsResponse) decode(pd packetDecoder, version int16) error 
 	return nil
 }
 
-func (r *DescribeLogDirsResponse) key() int16 {
+func (r *DescribeLogDirsResponse) APIKey() int16 {
 	return 35
 }
 
-func (r *DescribeLogDirsResponse) version() int16 {
+func (r *DescribeLogDirsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *DescribeLogDirsResponse) headerVersion() int16 {
+func (r *DescribeLogDirsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *DescribeLogDirsResponse) isValidVersion() bool {
+func (r *DescribeLogDirsResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 1
 }
 
-func (r *DescribeLogDirsResponse) requiredVersion() KafkaVersion {
+func (r *DescribeLogDirsResponse) RequiredVersion() KafkaVersion {
 	if r.Version > 0 {
 		return V2_0_0_0
 	}
@@ -88,7 +88,7 @@ type DescribeLogDirsResponseDirMetadata struct {
 	Topics []DescribeLogDirsResponseTopic
 }
 
-func (r *DescribeLogDirsResponseDirMetadata) encode(pe packetEncoder) error {
+func (r *DescribeLogDirsResponseDirMetadata) Encode(pe packetEncoder) error {
 	pe.putInt16(int16(r.ErrorCode))
 
 	if err := pe.putString(r.Path); err != nil {
@@ -99,7 +99,7 @@ func (r *DescribeLogDirsResponseDirMetadata) encode(pe packetEncoder) error {
 		return err
 	}
 	for _, topic := range r.Topics {
-		if err := topic.encode(pe); err != nil {
+		if err := topic.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -107,7 +107,7 @@ func (r *DescribeLogDirsResponseDirMetadata) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DescribeLogDirsResponseDirMetadata) decode(pd packetDecoder, version int16) error {
+func (r *DescribeLogDirsResponseDirMetadata) Decode(pd packetDecoder, version int16) error {
 	errCode, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -130,7 +130,7 @@ func (r *DescribeLogDirsResponseDirMetadata) decode(pd packetDecoder, version in
 	for i := 0; i < n; i++ {
 		t := DescribeLogDirsResponseTopic{}
 
-		if err := t.decode(pd, version); err != nil {
+		if err := t.Decode(pd, version); err != nil {
 			return err
 		}
 
@@ -146,7 +146,7 @@ type DescribeLogDirsResponseTopic struct {
 	Partitions []DescribeLogDirsResponsePartition
 }
 
-func (r *DescribeLogDirsResponseTopic) encode(pe packetEncoder) error {
+func (r *DescribeLogDirsResponseTopic) Encode(pe packetEncoder) error {
 	if err := pe.putString(r.Topic); err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (r *DescribeLogDirsResponseTopic) encode(pe packetEncoder) error {
 		return err
 	}
 	for _, partition := range r.Partitions {
-		if err := partition.encode(pe); err != nil {
+		if err := partition.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -163,7 +163,7 @@ func (r *DescribeLogDirsResponseTopic) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DescribeLogDirsResponseTopic) decode(pd packetDecoder, version int16) error {
+func (r *DescribeLogDirsResponseTopic) Decode(pd packetDecoder, version int16) error {
 	t, err := pd.getString()
 	if err != nil {
 		return err
@@ -177,7 +177,7 @@ func (r *DescribeLogDirsResponseTopic) decode(pd packetDecoder, version int16) e
 	r.Partitions = make([]DescribeLogDirsResponsePartition, n)
 	for i := 0; i < n; i++ {
 		p := DescribeLogDirsResponsePartition{}
-		if err := p.decode(pd, version); err != nil {
+		if err := p.Decode(pd, version); err != nil {
 			return err
 		}
 		r.Partitions[i] = p
@@ -202,7 +202,7 @@ type DescribeLogDirsResponsePartition struct {
 	IsTemporary bool
 }
 
-func (r *DescribeLogDirsResponsePartition) encode(pe packetEncoder) error {
+func (r *DescribeLogDirsResponsePartition) Encode(pe packetEncoder) error {
 	pe.putInt32(r.PartitionID)
 	pe.putInt64(r.Size)
 	pe.putInt64(r.OffsetLag)
@@ -211,7 +211,7 @@ func (r *DescribeLogDirsResponsePartition) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (r *DescribeLogDirsResponsePartition) decode(pd packetDecoder, version int16) error {
+func (r *DescribeLogDirsResponsePartition) Decode(pd packetDecoder, version int16) error {
 	pID, err := pd.getInt32()
 	if err != nil {
 		return err

@@ -14,7 +14,7 @@ type OffsetResponseBlock struct {
 	LeaderEpoch int32
 }
 
-func (b *OffsetResponseBlock) decode(pd packetDecoder, version int16) (err error) {
+func (b *OffsetResponseBlock) Decode(pd packetDecoder, version int16) (err error) {
 	tmp, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ type OffsetResponse struct {
 	Blocks         map[string]map[int32]*OffsetResponseBlock
 }
 
-func (r *OffsetResponse) decode(pd packetDecoder, version int16) (err error) {
+func (r *OffsetResponse) Decode(pd packetDecoder, version int16) (err error) {
 	if version >= 2 {
 		r.ThrottleTimeMs, err = pd.getInt32()
 		if err != nil {
@@ -109,7 +109,7 @@ func (r *OffsetResponse) decode(pd packetDecoder, version int16) (err error) {
 			}
 
 			block := new(OffsetResponseBlock)
-			err = block.decode(pd, version)
+			err = block.Decode(pd, version)
 			if err != nil {
 				return err
 			}
@@ -146,7 +146,7 @@ func (r *OffsetResponse) GetBlock(topic string, partition int32) *OffsetResponse
 0 0 0 0 0 0 0 1
 0 0 0 0 0 1 1 1] <nil>
 */
-func (r *OffsetResponse) encode(pe packetEncoder) (err error) {
+func (r *OffsetResponse) Encode(pe packetEncoder) (err error) {
 	if r.Version >= 2 {
 		pe.putInt32(r.ThrottleTimeMs)
 	}
@@ -164,7 +164,7 @@ func (r *OffsetResponse) encode(pe packetEncoder) (err error) {
 		}
 		for partition, block := range partitions {
 			pe.putInt32(partition)
-			if err = block.encode(pe, r.version()); err != nil {
+			if err = block.encode(pe, r.APIVersion()); err != nil {
 				return err
 			}
 		}
@@ -173,23 +173,23 @@ func (r *OffsetResponse) encode(pe packetEncoder) (err error) {
 	return nil
 }
 
-func (r *OffsetResponse) key() int16 {
+func (r *OffsetResponse) APIKey() int16 {
 	return 2
 }
 
-func (r *OffsetResponse) version() int16 {
+func (r *OffsetResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *OffsetResponse) headerVersion() int16 {
+func (r *OffsetResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *OffsetResponse) isValidVersion() bool {
+func (r *OffsetResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 4
 }
 
-func (r *OffsetResponse) requiredVersion() KafkaVersion {
+func (r *OffsetResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 4:
 		return V2_1_0_0

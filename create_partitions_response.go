@@ -11,7 +11,7 @@ type CreatePartitionsResponse struct {
 	TopicPartitionErrors map[string]*TopicPartitionError
 }
 
-func (c *CreatePartitionsResponse) encode(pe packetEncoder) error {
+func (c *CreatePartitionsResponse) Encode(pe packetEncoder) error {
 	pe.putInt32(int32(c.ThrottleTime / time.Millisecond))
 	if err := pe.putArrayLength(len(c.TopicPartitionErrors)); err != nil {
 		return err
@@ -21,7 +21,7 @@ func (c *CreatePartitionsResponse) encode(pe packetEncoder) error {
 		if err := pe.putString(topic); err != nil {
 			return err
 		}
-		if err := partitionError.encode(pe); err != nil {
+		if err := partitionError.Encode(pe); err != nil {
 			return err
 		}
 	}
@@ -29,7 +29,7 @@ func (c *CreatePartitionsResponse) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (c *CreatePartitionsResponse) decode(pd packetDecoder, version int16) (err error) {
+func (c *CreatePartitionsResponse) Decode(pd packetDecoder, version int16) (err error) {
 	throttleTime, err := pd.getInt32()
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func (c *CreatePartitionsResponse) decode(pd packetDecoder, version int16) (err 
 			return err
 		}
 		c.TopicPartitionErrors[topic] = new(TopicPartitionError)
-		if err := c.TopicPartitionErrors[topic].decode(pd, version); err != nil {
+		if err := c.TopicPartitionErrors[topic].Decode(pd, version); err != nil {
 			return err
 		}
 	}
@@ -56,23 +56,23 @@ func (c *CreatePartitionsResponse) decode(pd packetDecoder, version int16) (err 
 	return nil
 }
 
-func (r *CreatePartitionsResponse) key() int16 {
+func (r *CreatePartitionsResponse) APIKey() int16 {
 	return 37
 }
 
-func (r *CreatePartitionsResponse) version() int16 {
+func (r *CreatePartitionsResponse) APIVersion() int16 {
 	return r.Version
 }
 
-func (r *CreatePartitionsResponse) headerVersion() int16 {
+func (r *CreatePartitionsResponse) HeaderVersion() int16 {
 	return 0
 }
 
-func (r *CreatePartitionsResponse) isValidVersion() bool {
+func (r *CreatePartitionsResponse) IsValidVersion() bool {
 	return r.Version >= 0 && r.Version <= 1
 }
 
-func (r *CreatePartitionsResponse) requiredVersion() KafkaVersion {
+func (r *CreatePartitionsResponse) RequiredVersion() KafkaVersion {
 	switch r.Version {
 	case 1:
 		return V2_0_0_0
@@ -104,7 +104,7 @@ func (t *TopicPartitionError) Unwrap() error {
 	return t.Err
 }
 
-func (t *TopicPartitionError) encode(pe packetEncoder) error {
+func (t *TopicPartitionError) Encode(pe packetEncoder) error {
 	pe.putInt16(int16(t.Err))
 
 	if err := pe.putNullableString(t.ErrMsg); err != nil {
@@ -114,7 +114,7 @@ func (t *TopicPartitionError) encode(pe packetEncoder) error {
 	return nil
 }
 
-func (t *TopicPartitionError) decode(pd packetDecoder, version int16) (err error) {
+func (t *TopicPartitionError) Decode(pd packetDecoder, version int16) (err error) {
 	kerr, err := pd.getInt16()
 	if err != nil {
 		return err
