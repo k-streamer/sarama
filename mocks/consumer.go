@@ -4,7 +4,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 // Consumer implements sarama's Consumer interface for testing purposes.
@@ -38,9 +38,9 @@ func NewConsumer(t ErrorReporter, config *sarama.Config) *Consumer {
 	return c
 }
 
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 // Consumer interface implementation
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 
 // ConsumePartition implements the ConsumePartition method from the sarama.Consumer interface.
 // Before you can start consuming a partition, you have to set expectations on it using
@@ -60,7 +60,10 @@ func (c *Consumer) ConsumePartition(topic string, partition int32, offset int64)
 	}
 
 	if pc.offset != AnyOffset && pc.offset != offset {
-		c.t.Errorf("Unexpected offset when calling ConsumePartition for %s/%d. Expected %d, got %d.", topic, partition, pc.offset, offset)
+		c.t.Errorf(
+			"Unexpected offset when calling ConsumePartition for %s/%d. Expected %d, got %d.", topic, partition,
+			pc.offset, offset,
+		)
 	}
 
 	pc.consumed = true
@@ -187,9 +190,9 @@ func (c *Consumer) ResumeAll() {
 	}
 }
 
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 // Expectation API
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 
 // SetTopicMetadata sets the clusters topic/partition metadata,
 // which will be returned by Topics() and Partitions().
@@ -237,9 +240,9 @@ func (c *Consumer) ExpectConsumePartition(topic string, partition int32, offset 
 	return c.partitionConsumers[topic][partition]
 }
 
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 // PartitionConsumer mock type
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 
 // PartitionConsumer implements sarama's PartitionConsumer interface for testing purposes.
 // It is returned by the mock Consumers ConsumePartitionMethod, but only if it is
@@ -264,17 +267,19 @@ type PartitionConsumer struct {
 	paused                        bool
 }
 
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 // PartitionConsumer interface implementation
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 
 // AsyncClose implements the AsyncClose method from the sarama.PartitionConsumer interface.
 func (pc *PartitionConsumer) AsyncClose() {
-	pc.singleClose.Do(func() {
-		close(pc.suppressedMessages)
-		close(pc.messages)
-		close(pc.errors)
-	})
+	pc.singleClose.Do(
+		func() {
+			close(pc.suppressedMessages)
+			close(pc.messages)
+			close(pc.errors)
+		},
+	)
 }
 
 // Close implements the Close method from the sarama.PartitionConsumer interface. It will
@@ -286,11 +291,17 @@ func (pc *PartitionConsumer) Close() error {
 	}
 
 	if pc.errorsShouldBeDrained && len(pc.errors) > 0 {
-		pc.t.Errorf("Expected the errors channel for %s/%d to be drained on close, but found %d errors.", pc.topic, pc.partition, len(pc.errors))
+		pc.t.Errorf(
+			"Expected the errors channel for %s/%d to be drained on close, but found %d errors.", pc.topic,
+			pc.partition, len(pc.errors),
+		)
 	}
 
 	if pc.messagesShouldBeDrained && len(pc.messages) > 0 {
-		pc.t.Errorf("Expected the messages channel for %s/%d to be drained on close, but found %d messages.", pc.topic, pc.partition, len(pc.messages))
+		pc.t.Errorf(
+			"Expected the messages channel for %s/%d to be drained on close, but found %d messages.", pc.topic,
+			pc.partition, len(pc.messages),
+		)
 	}
 
 	pc.AsyncClose()
@@ -380,9 +391,9 @@ func (pc *PartitionConsumer) IsPaused() bool {
 	return pc.paused
 }
 
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 // Expectation API
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 
 // YieldMessage will yield a messages Messages channel of this partition consumer
 // when it is consumed. By default, the mock consumer will not verify whether this

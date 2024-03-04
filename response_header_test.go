@@ -15,7 +15,7 @@ var (
 )
 
 func TestResponseHeaderV0(t *testing.T) {
-	header := responseHeader{}
+	header := ResponseHeader{}
 
 	testVersionDecodable(t, "response header", &header, responseHeaderBytesV0, 0)
 	if header.length != 0xf00 {
@@ -27,7 +27,7 @@ func TestResponseHeaderV0(t *testing.T) {
 }
 
 func TestResponseHeaderV1(t *testing.T) {
-	header := responseHeader{}
+	header := ResponseHeader{}
 
 	testVersionDecodable(t, "response header", &header, responseHeaderBytesV1, 1)
 	if header.length != 0xf00 {

@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/k-streamer/sarama"
-	"github.com/k-streamer/sarama/mocks"
+	"github.com/kcore-io/sarama"
+	"github.com/kcore-io/sarama/mocks"
 )
 
 // In normal operation, we expect one access log entry,

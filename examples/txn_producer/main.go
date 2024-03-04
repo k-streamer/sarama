@@ -17,7 +17,7 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 // Sarama configuration options
@@ -64,18 +64,20 @@ func main() {
 		log.Panicf("Error parsing Kafka version: %v", err)
 	}
 
-	producerProvider := newProducerProvider(strings.Split(brokers, ","), func() *sarama.Config {
-		config := sarama.NewConfig()
-		config.Version = version
-		config.Producer.Idempotent = true
-		config.Producer.Return.Errors = false
-		config.Producer.RequiredAcks = sarama.WaitForAll
-		config.Producer.Partitioner = sarama.NewRoundRobinPartitioner
-		config.Producer.Transaction.Retry.Backoff = 10
-		config.Producer.Transaction.ID = "txn_producer"
-		config.Net.MaxOpenRequests = 1
-		return config
-	})
+	producerProvider := newProducerProvider(
+		strings.Split(brokers, ","), func() *sarama.Config {
+			config := sarama.NewConfig()
+			config.Version = version
+			config.Producer.Idempotent = true
+			config.Producer.Return.Errors = false
+			config.Producer.RequiredAcks = sarama.WaitForAll
+			config.Producer.Partitioner = sarama.NewRoundRobinPartitioner
+			config.Producer.Transaction.Retry.Backoff = 10
+			config.Producer.Transaction.ID = "txn_producer"
+			config.Net.MaxOpenRequests = 1
+			return config
+		},
+	)
 
 	go metrics.Log(metrics.DefaultRegistry, 5*time.Second, log.New(os.Stderr, "metrics: ", log.LstdFlags))
 

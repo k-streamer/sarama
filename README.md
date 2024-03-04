@@ -1,19 +1,19 @@
 # sarama
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/k-streamer/sarama)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/k-streamer/sarama/badge?style=flat)](https://securityscorecards.dev/viewer/?uri=github.com/IBM/sarama)
+[![Go Reference](https://pkg.go.dev/badge/github.com/kcore-io/sarama)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/kcore-io/sarama/badge?style=flat)](https://securityscorecards.dev/viewer/?uri=github.com/IBM/sarama)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/7996/badge)](https://www.bestpractices.dev/projects/7996)
 
 Sarama is an MIT-licensed Go client library for [Apache Kafka](https://kafka.apache.org/).
 
 ## Getting started
 
-- API documentation and examples are available via [pkg.go.dev](https://pkg.go.dev/github.com/k-streamer/sarama).
+- API documentation and examples are available via [pkg.go.dev](https://pkg.go.dev/github.com/kcore-io/sarama).
 - Mocks for testing are available in the [mocks](./mocks) subpackage.
 - The [examples](./examples) directory contains more elaborate example applications.
 - The [tools](./tools) directory contains command line tools that can be useful for testing, diagnostics, and instrumentation.
 
-You might also want to look at the [Frequently Asked Questions](https://github.com/k-streamer/sarama/wiki/Frequently-Asked-Questions).
+You might also want to look at the [Frequently Asked Questions](https://github.com/kcore-io/sarama/wiki/Frequently-Asked-Questions).
 
 ## Compatibility and API stability
 
@@ -28,8 +28,8 @@ A changelog is available [here](CHANGELOG.md).
 
 ## Contributing
 
-- Get started by checking our [contribution guidelines](https://github.com/k-streamer/sarama/blob/main/CONTRIBUTING.md).
-- Read the [Sarama wiki](https://github.com/k-streamer/sarama/wiki) for more technical and design details.
+- Get started by checking our [contribution guidelines](https://github.com/kcore-io/sarama/blob/main/CONTRIBUTING.md).
+- Read the [Sarama wiki](https://github.com/kcore-io/sarama/wiki) for more technical and design details.
 - The [Kafka Protocol Specification](https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol) contains a wealth of useful information.
 - For more general issues, there is [a google group](https://groups.google.com/forum/#!forum/kafka-clients) for Kafka client developers.
 - If you have any questions, just ask!

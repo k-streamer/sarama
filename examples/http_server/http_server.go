@@ -12,12 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 var (
 	addr          = flag.String("addr", ":8080", "The address to bind to")
-	brokers       = flag.String("brokers", os.Getenv("KAFKA_PEERS"), "The Kafka brokers to connect to, as a comma separated list")
+	brokers       = flag.String(
+		"brokers", os.Getenv("KAFKA_PEERS"), "The Kafka brokers to connect to, as a comma separated list",
+	)
 	version       = flag.String("version", sarama.DefaultVersion.String(), "Kafka cluster version")
 	verbose       = flag.Bool("verbose", false, "Turn on Sarama logging")
 	certFile      = flag.String("certificate", "", "The optional certificate file for client authentication")
@@ -116,28 +118,32 @@ func (s *Server) Run(addr string) error {
 }
 
 func (s *Server) collectQueryStringData() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			http.NotFound(w, r)
-			return
-		}
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/" {
+				http.NotFound(w, r)
+				return
+			}
 
-		// We are not setting a message key, which means that all messages will
-		// be distributed randomly over the different partitions.
-		partition, offset, err := s.DataCollector.SendMessage(&sarama.ProducerMessage{
-			Topic: "important",
-			Value: sarama.StringEncoder(r.URL.RawQuery),
-		})
+			// We are not setting a message key, which means that all messages will
+			// be distributed randomly over the different partitions.
+			partition, offset, err := s.DataCollector.SendMessage(
+				&sarama.ProducerMessage{
+					Topic: "important",
+					Value: sarama.StringEncoder(r.URL.RawQuery),
+				},
+			)
 
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Failed to store your data: %s", err)
-		} else {
-			// The tuple (topic, partition, offset) can be used as a unique identifier
-			// for a message in a Kafka cluster.
-			fmt.Fprintf(w, "Your data is stored with unique identifier important/%d/%d", partition, offset)
-		}
-	})
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(w, "Failed to store your data: %s", err)
+			} else {
+				// The tuple (topic, partition, offset) can be used as a unique identifier
+				// for a message in a Kafka cluster.
+				fmt.Fprintf(w, "Your data is stored with unique identifier important/%d/%d", partition, offset)
+			}
+		},
+	)
 }
 
 type accessLogEntry struct {
@@ -168,28 +174,30 @@ func (ale *accessLogEntry) Encode() ([]byte, error) {
 }
 
 func (s *Server) withAccessLog(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		started := time.Now()
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			started := time.Now()
 
-		next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r)
 
-		entry := &accessLogEntry{
-			Method:       r.Method,
-			Host:         r.Host,
-			Path:         r.RequestURI,
-			IP:           r.RemoteAddr,
-			ResponseTime: float64(time.Since(started)) / float64(time.Second),
-		}
+			entry := &accessLogEntry{
+				Method:       r.Method,
+				Host:         r.Host,
+				Path:         r.RequestURI,
+				IP:           r.RemoteAddr,
+				ResponseTime: float64(time.Since(started)) / float64(time.Second),
+			}
 
-		// We will use the client's IP address as key. This will cause
-		// all the access log entries of the same IP address to end up
-		// on the same partition.
-		s.AccessLogProducer.Input() <- &sarama.ProducerMessage{
-			Topic: "access_log",
-			Key:   sarama.StringEncoder(r.RemoteAddr),
-			Value: entry,
-		}
-	})
+			// We will use the client's IP address as key. This will cause
+			// all the access log entries of the same IP address to end up
+			// on the same partition.
+			s.AccessLogProducer.Input() <- &sarama.ProducerMessage{
+				Topic: "access_log",
+				Key:   sarama.StringEncoder(r.RemoteAddr),
+				Value: entry,
+			}
+		},
+	)
 }
 
 func newDataCollector(brokerList []string, version sarama.KafkaVersion) sarama.SyncProducer {

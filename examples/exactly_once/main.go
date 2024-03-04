@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 // Sarama configuration options
@@ -35,7 +35,9 @@ func init() {
 	flag.StringVar(&version, "version", sarama.DefaultVersion.String(), "Kafka cluster version")
 	flag.StringVar(&topics, "topics", "", "Kafka topics to be consumed, as a comma separated list")
 	flag.StringVar(&destinationTopic, "destination-topic", "", "Kafka topic where records will be copied from topics.")
-	flag.StringVar(&assignor, "assignor", "range", "Consumer group partition assignment strategy (range, roundrobin, sticky)")
+	flag.StringVar(
+		&assignor, "assignor", "range", "Consumer group partition assignment strategy (range, roundrobin, sticky)",
+	)
 	flag.BoolVar(&oldest, "oldest", true, "Kafka consumer consume initial offset from oldest")
 	flag.BoolVar(&verbose, "verbose", false, "Sarama logging")
 	flag.Parse()
@@ -95,16 +97,18 @@ func main() {
 	config.Consumer.IsolationLevel = sarama.ReadCommitted
 	config.Consumer.Offsets.AutoCommit.Enable = false
 
-	producerProvider := newProducerProvider(strings.Split(brokers, ","), func() *sarama.Config {
-		producerConfig := sarama.NewConfig()
-		producerConfig.Version = version
+	producerProvider := newProducerProvider(
+		strings.Split(brokers, ","), func() *sarama.Config {
+			producerConfig := sarama.NewConfig()
+			producerConfig.Version = version
 
-		producerConfig.Net.MaxOpenRequests = 1
-		producerConfig.Producer.RequiredAcks = sarama.WaitForAll
-		producerConfig.Producer.Idempotent = true
-		producerConfig.Producer.Transaction.ID = "sarama"
-		return producerConfig
-	})
+			producerConfig.Net.MaxOpenRequests = 1
+			producerConfig.Producer.RequiredAcks = sarama.WaitForAll
+			producerConfig.Producer.Idempotent = true
+			producerConfig.Producer.Transaction.ID = "sarama"
+			return producerConfig
+		},
+	)
 
 	/**
 	 * Setup a new Sarama consumer group
@@ -215,7 +219,7 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 	// NOTE:
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
-	// https://github.com/k-streamer/sarama/blob/main/consumer_group.go#L27-L2
+	// https://github.com/kcore-io/sarama/blob/main/consumer_group.go#L27-L2
 	for {
 		select {
 		case message, ok := <-claim.Messages():
@@ -246,9 +250,11 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 				err = producer.AddMessageToTxn(message, consumer.groupId, nil)
 				if err != nil {
 					log.Println("error on AddMessageToTxn")
-					consumer.handleTxnError(producer, message, session, err, func() error {
-						return producer.AddMessageToTxn(message, consumer.groupId, nil)
-					})
+					consumer.handleTxnError(
+						producer, message, session, err, func() error {
+							return producer.AddMessageToTxn(message, consumer.groupId, nil)
+						},
+					)
 					return
 				}
 
@@ -256,12 +262,17 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 				err = producer.CommitTxn()
 				if err != nil {
 					log.Println("error on CommitTxn")
-					consumer.handleTxnError(producer, message, session, err, func() error {
-						return producer.CommitTxn()
-					})
+					consumer.handleTxnError(
+						producer, message, session, err, func() error {
+							return producer.CommitTxn()
+						},
+					)
 					return
 				}
-				log.Printf("Message claimed [%s]: value = %s, timestamp = %v, topic = %s, partition = %d", time.Since(startTime), string(message.Value), message.Timestamp, message.Topic, message.Partition)
+				log.Printf(
+					"Message claimed [%s]: value = %s, timestamp = %v, topic = %s, partition = %d",
+					time.Since(startTime), string(message.Value), message.Timestamp, message.Topic, message.Partition,
+				)
 			}()
 		// Should return when `session.Context()` is done.
 		// If not, will raise `ErrRebalanceInProgress` or `read tcp <ip>:<port>: i/o timeout` when kafka rebalance. see:
@@ -272,7 +283,13 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 	}
 }
 
-func (consumer *Consumer) handleTxnError(producer sarama.AsyncProducer, message *sarama.ConsumerMessage, session sarama.ConsumerGroupSession, err error, defaulthandler func() error) {
+func (consumer *Consumer) handleTxnError(
+	producer sarama.AsyncProducer,
+	message *sarama.ConsumerMessage,
+	session sarama.ConsumerGroupSession,
+	err error,
+	defaulthandler func() error,
+) {
 	log.Printf("Message consumer: unable to process transaction: %+v", err)
 	for {
 		if producer.TxnStatus()&sarama.ProducerTxnFlagFatalError != 0 {

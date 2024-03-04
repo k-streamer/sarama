@@ -10,14 +10,18 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 var (
-	brokerList = flag.String("brokers", os.Getenv("KAFKA_PEERS"), "The comma separated list of brokers in the Kafka cluster")
+	brokerList = flag.String(
+		"brokers", os.Getenv("KAFKA_PEERS"), "The comma separated list of brokers in the Kafka cluster",
+	)
 	topic      = flag.String("topic", "", "REQUIRED: the topic to consume")
 	partition  = flag.Int("partition", -1, "REQUIRED: the partition to consume")
-	offset     = flag.String("offset", "newest", "The offset to start with. Can be `oldest`, `newest`, or an actual offset")
+	offset     = flag.String(
+		"offset", "newest", "The offset to start with. Can be `oldest`, `newest`, or an actual offset",
+	)
 	verbose    = flag.Bool("verbose", false, "Whether to turn on sarama logging")
 
 	logger = log.New(os.Stderr, "", log.LstdFlags)

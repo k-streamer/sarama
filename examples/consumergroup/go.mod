@@ -1,8 +1,8 @@
-module github.com/k-streamer/sarama/examples/consumer
+module github.com/kcore-io/sarama/examples/consumer
 
 go 1.18
 
-require github.com/k-streamer/sarama v0.0.0-20231231125353-bf161a071818
+require github.com/kcore-io/sarama v0.0.0-20231231125353-bf161a071818
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -25,4 +25,4 @@ require (
 	golang.org/x/net v0.19.0 // indirect
 )
 
-replace github.com/k-streamer/sarama => ../../
+replace github.com/kcore-io/sarama => ../../

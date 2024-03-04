@@ -19,7 +19,7 @@ linters-settings:
   misspell:
     locale: US
   goimports:
-    local-prefixes: github.com/k-streamer/sarama
+    local-prefixes: github.com/kcore-io/sarama
   gocritic:
     enabled-tags:
       - diagnostic

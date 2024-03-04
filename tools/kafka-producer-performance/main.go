@@ -15,8 +15,8 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 
-	"github.com/k-streamer/sarama"
-	"github.com/k-streamer/sarama/tools/tls"
+	"github.com/kcore-io/sarama"
+	"github.com/kcore-io/sarama/tools/tls"
 )
 
 var (
@@ -261,8 +261,10 @@ func main() {
 	if *securityProtocol == "SSL" {
 		tlsConfig, err := tls.NewConfig(*tlsClientCert, *tlsClientKey)
 		if err != nil {
-			printErrorAndExit(69, "failed to load client certificate from: %s and private key from: %s: %v",
-				*tlsClientCert, *tlsClientKey, err)
+			printErrorAndExit(
+				69, "failed to load client certificate from: %s and private key from: %s: %v",
+				*tlsClientCert, *tlsClientKey, err,
+			)
 		}
 
 		if *tlsRootCACerts != "" {
@@ -304,19 +306,25 @@ func main() {
 
 	brokers := strings.Split(*brokers, ",")
 	if *sync {
-		runSyncProducer(*topic, *partition, *messageLoad, *messageSize, *routines,
-			config, brokers, *throughput)
+		runSyncProducer(
+			*topic, *partition, *messageLoad, *messageSize, *routines,
+			config, brokers, *throughput,
+		)
 	} else {
-		runAsyncProducer(*topic, *partition, *messageLoad, *messageSize,
-			config, brokers, *throughput)
+		runAsyncProducer(
+			*topic, *partition, *messageLoad, *messageSize,
+			config, brokers, *throughput,
+		)
 	}
 
 	cancel()
 	<-done
 }
 
-func runAsyncProducer(topic string, partition, messageLoad, messageSize int,
-	config *sarama.Config, brokers []string, throughput int) {
+func runAsyncProducer(
+	topic string, partition, messageLoad, messageSize int,
+	config *sarama.Config, brokers []string, throughput int,
+) {
 	producer, err := sarama.NewAsyncProducer(brokers, config)
 	if err != nil {
 		printErrorAndExit(69, "Failed to create producer: %s", err)
@@ -362,8 +370,10 @@ func runAsyncProducer(topic string, partition, messageLoad, messageSize int,
 	close(messagesDone)
 }
 
-func runSyncProducer(topic string, partition, messageLoad, messageSize, routines int,
-	config *sarama.Config, brokers []string, throughput int) {
+func runSyncProducer(
+	topic string, partition, messageLoad, messageSize, routines int,
+	config *sarama.Config, brokers []string, throughput int,
+) {
 	producer, err := sarama.NewSyncProducer(brokers, config)
 	if err != nil {
 		printErrorAndExit(69, "Failed to create producer: %s", err)
@@ -438,9 +448,10 @@ func printMetrics(w io.Writer, r metrics.Registry) {
 	requestLatencyPercentiles := requestLatency.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999})
 	outgoingByteRate := outgoingByteRateMetric.(metrics.Meter).Snapshot()
 	requestsInFlight := requestsInFlightMetric.(metrics.Counter).Count()
-	fmt.Fprintf(w, "%d records sent, %.1f records/sec (%.2f MiB/sec ingress, %.2f MiB/sec egress), "+
-		"%.1f ms avg latency, %.1f ms stddev, %.1f ms 50th, %.1f ms 75th, "+
-		"%.1f ms 95th, %.1f ms 99th, %.1f ms 99.9th, %d total req. in flight\n",
+	fmt.Fprintf(
+		w, "%d records sent, %.1f records/sec (%.2f MiB/sec ingress, %.2f MiB/sec egress), "+
+			"%.1f ms avg latency, %.1f ms stddev, %.1f ms 50th, %.1f ms 75th, "+
+			"%.1f ms 95th, %.1f ms 99th, %.1f ms 99.9th, %d total req. in flight\n",
 		recordSendRate.Count(),
 		recordSendRate.RateMean(),
 		recordSendRate.RateMean()*float64(*messageSize)/1024/1024,

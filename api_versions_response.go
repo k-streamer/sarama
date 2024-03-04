@@ -1,6 +1,8 @@
 package sarama
 
-import "time"
+import (
+	"time"
+)
 
 // ApiVersionsResponseKey contains the APIs supported by the broker.
 type ApiVersionsResponseKey struct {

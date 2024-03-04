@@ -10,25 +10,38 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 
-	"github.com/k-streamer/sarama"
-	"github.com/k-streamer/sarama/tools/tls"
+	"github.com/kcore-io/sarama"
+	"github.com/kcore-io/sarama/tools/tls"
 )
 
 var (
-	brokerList    = flag.String("brokers", os.Getenv("KAFKA_PEERS"), "The comma separated list of brokers in the Kafka cluster. You can also set the KAFKA_PEERS environment variable")
-	headers       = flag.String("headers", "", "The headers of the message to produce. Example: -headers=foo:bar,bar:foo")
+	brokerList    = flag.String(
+		"brokers", os.Getenv("KAFKA_PEERS"),
+		"The comma separated list of brokers in the Kafka cluster. You can also set the KAFKA_PEERS environment variable",
+	)
+	headers       = flag.String(
+		"headers", "", "The headers of the message to produce. Example: -headers=foo:bar,bar:foo",
+	)
 	topic         = flag.String("topic", "", "REQUIRED: the topic to produce to")
 	key           = flag.String("key", "", "The key of the message to produce. Can be empty.")
-	value         = flag.String("value", "", "REQUIRED: the value of the message to produce. You can also provide the value on stdin.")
-	partitioner   = flag.String("partitioner", "", "The partitioning scheme to use. Can be `hash`, `manual`, or `random`")
+	value         = flag.String(
+		"value", "", "REQUIRED: the value of the message to produce. You can also provide the value on stdin.",
+	)
+	partitioner   = flag.String(
+		"partitioner", "", "The partitioning scheme to use. Can be `hash`, `manual`, or `random`",
+	)
 	partition     = flag.Int("partition", -1, "The partition to produce to.")
 	verbose       = flag.Bool("verbose", false, "Turn on sarama logging to stderr")
 	showMetrics   = flag.Bool("metrics", false, "Output metrics on successful publish to stderr")
 	silent        = flag.Bool("silent", false, "Turn off printing the message's topic, partition, and offset to stdout")
 	tlsEnabled    = flag.Bool("tls-enabled", false, "Whether to enable TLS")
 	tlsSkipVerify = flag.Bool("tls-skip-verify", false, "Whether skip TLS server cert verification")
-	tlsClientCert = flag.String("tls-client-cert", "", "Client cert for client authentication (use with -tls-enabled and -tls-client-key)")
-	tlsClientKey  = flag.String("tls-client-key", "", "Client key for client authentication (use with tls-enabled and -tls-client-cert)")
+	tlsClientCert = flag.String(
+		"tls-client-cert", "", "Client cert for client authentication (use with -tls-enabled and -tls-client-key)",
+	)
+	tlsClientKey  = flag.String(
+		"tls-client-key", "", "Client key for client authentication (use with tls-enabled and -tls-client-cert)",
+	)
 
 	logger = log.New(os.Stderr, "", log.LstdFlags)
 )
@@ -108,10 +121,12 @@ func main() {
 			if header := strings.Split(h, ":"); len(header) != 2 {
 				printUsageErrorAndExit("-header should be key:value. Example: -headers=foo:bar,bar:foo")
 			} else {
-				hdrs = append(hdrs, sarama.RecordHeader{
-					Key:   []byte(header[0]),
-					Value: []byte(header[1]),
-				})
+				hdrs = append(
+					hdrs, sarama.RecordHeader{
+						Key:   []byte(header[0]),
+						Value: []byte(header[1]),
+					},
+				)
 			}
 		}
 

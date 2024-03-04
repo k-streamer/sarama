@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 func init() {
@@ -17,7 +17,9 @@ func init() {
 }
 
 var (
-	brokers       = flag.String("brokers", os.Getenv("KAFKA_PEERS"), "The Kafka brokers to connect to, as a comma separated list")
+	brokers       = flag.String(
+		"brokers", os.Getenv("KAFKA_PEERS"), "The Kafka brokers to connect to, as a comma separated list",
+	)
 	version       = flag.String("version", sarama.DefaultVersion.String(), "Kafka cluster version")
 	userName      = flag.String("username", "", "The SASL username")
 	passwd        = flag.String("passwd", "", "The SASL password")
@@ -159,10 +161,12 @@ func main() {
 		if err != nil {
 			logger.Fatalln("failed to create producer: ", err)
 		}
-		partition, offset, err := syncProducer.SendMessage(&sarama.ProducerMessage{
-			Topic: *topic,
-			Value: sarama.StringEncoder("test_message"),
-		})
+		partition, offset, err := syncProducer.SendMessage(
+			&sarama.ProducerMessage{
+				Topic: *topic,
+				Value: sarama.StringEncoder("test_message"),
+			},
+		)
 		if err != nil {
 			logger.Fatalln("failed to send message to ", *topic, err)
 		}

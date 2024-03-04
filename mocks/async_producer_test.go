@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 func generateRegexpChecker(re string) func([]byte) error {
@@ -156,22 +156,26 @@ func TestProducerWithTxn(t *testing.T) {
 
 	mp.Input() <- &sarama.ProducerMessage{Topic: "test"}
 
-	if err := mp.AddMessageToTxn(&sarama.ConsumerMessage{
-		Topic:     "original-topic",
-		Partition: 0,
-		Offset:    123,
-	}, "test-group", nil); err != nil {
+	if err := mp.AddMessageToTxn(
+		&sarama.ConsumerMessage{
+			Topic: "original-topic",
+			Partition: 0,
+			Offset: 123,
+		}, "test-group", nil,
+	); err != nil {
 		t.Error(err)
 	}
 
-	if err := mp.AddOffsetsToTxn(map[string][]*sarama.PartitionOffsetMetadata{
-		"original-topic": {
-			{
-				Partition: 1,
-				Offset:    321,
+	if err := mp.AddOffsetsToTxn(
+		map[string][]*sarama.PartitionOffsetMetadata{
+			"original-topic": {
+				{
+					Partition: 1,
+					Offset:    321,
+				},
 			},
-		},
-	}, "test-group"); err != nil {
+		}, "test-group",
+	); err != nil {
 		t.Error(err)
 	}
 
@@ -213,15 +217,17 @@ func TestProducerWithBrokenPartitioner(t *testing.T) {
 		return brokePartitioner{}
 	}
 	mp := NewAsyncProducer(trm, config)
-	mp.ExpectInputWithMessageCheckerFunctionAndSucceed(func(msg *sarama.ProducerMessage) error {
-		if msg.Partition != 15 {
-			t.Error("Expected partition 15, found: ", msg.Partition)
-		}
-		if msg.Topic != "test" {
-			t.Errorf(`Expected topic "test", found: %q`, msg.Topic)
-		}
-		return nil
-	})
+	mp.ExpectInputWithMessageCheckerFunctionAndSucceed(
+		func(msg *sarama.ProducerMessage) error {
+			if msg.Partition != 15 {
+				t.Error("Expected partition 15, found: ", msg.Partition)
+			}
+			if msg.Topic != "test" {
+				t.Errorf(`Expected topic "test", found: %q`, msg.Topic)
+			}
+			return nil
+		},
+	)
 	mp.ExpectInputAndSucceed() // should actually fail in partitioning
 
 	mp.Input() <- &sarama.ProducerMessage{Topic: "test"}
@@ -259,7 +265,9 @@ func TestProducerWithInvalidConfiguration(t *testing.T) {
 	}
 	if len(trm.errors) != 1 {
 		t.Error("Expected to report a single error")
-	} else if !strings.Contains(trm.errors[0], `ClientID value "not a valid producer ID" is not valid for Kafka versions before 1.0.0`) {
+	} else if !strings.Contains(
+		trm.errors[0], `ClientID value "not a valid producer ID" is not valid for Kafka versions before 1.0.0`,
+	) {
 		t.Errorf("Unexpected error: %s", trm.errors[0])
 	}
 }

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 // SyncProducer implements sarama's SyncProducer interface for testing purposes.
@@ -48,9 +48,9 @@ func NewSyncProducer(t ErrorReporter, config *sarama.Config) *SyncProducer {
 	}
 }
 
-////////////////////////////////////////////////
+// //////////////////////////////////////////////
 // Implement SyncProducer interface
-////////////////////////////////////////////////
+// //////////////////////////////////////////////
 
 // SendMessage corresponds with the SendMessage method of sarama's SyncProducer implementation.
 // You have to set expectations on the mock producer before calling SendMessage, so it knows
@@ -157,9 +157,9 @@ func (sp *SyncProducer) Close() error {
 	return nil
 }
 
-////////////////////////////////////////////////
+// //////////////////////////////////////////////
 // Setting expectations
-////////////////////////////////////////////////
+// //////////////////////////////////////////////
 
 // ExpectSendMessageWithMessageCheckerFunctionAndSucceed sets an expectation on the mock producer
 // that SendMessage will be called. The mock producer will first call the given function to check

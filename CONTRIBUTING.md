@@ -1,7 +1,7 @@
 # Contributing
 
-[fork]: https://github.com/k-streamer/sarama/fork
-[pr]: https://github.com/k-streamer/sarama/compare
+[fork]: https://github.com/kcore-io/sarama/fork
+[pr]: https://github.com/kcore-io/sarama/compare
 [released]: https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license
 
 Hi there! We are thrilled that you would like to contribute to Sarama.

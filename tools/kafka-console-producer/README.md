@@ -4,7 +4,7 @@ A simple command line tool to produce a single message to Kafka.
 
 ### Installation
 
-    go get github.com/k-streamer/sarama/tools/kafka-console-producer
+    go get github.com/kcore-io/sarama/tools/kafka-console-producer
 
 
 ### Usage

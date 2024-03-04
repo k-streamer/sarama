@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 func TestMockConsumerImplementsConsumerInterface(t *testing.T) {
@@ -29,10 +29,16 @@ func TestConsumerHandlesExpectations(t *testing.T) {
 		}
 	}()
 
-	consumer.ExpectConsumePartition("test", 0, sarama.OffsetOldest).YieldMessage(&sarama.ConsumerMessage{Value: []byte("hello world")})
+	consumer.ExpectConsumePartition(
+		"test", 0, sarama.OffsetOldest,
+	).YieldMessage(&sarama.ConsumerMessage{Value: []byte("hello world")})
 	consumer.ExpectConsumePartition("test", 0, sarama.OffsetOldest).YieldError(sarama.ErrOutOfBrokers)
-	consumer.ExpectConsumePartition("test", 1, sarama.OffsetOldest).YieldMessage(&sarama.ConsumerMessage{Value: []byte("hello world again")})
-	consumer.ExpectConsumePartition("other", 0, AnyOffset).YieldMessage(&sarama.ConsumerMessage{Value: []byte("hello other")})
+	consumer.ExpectConsumePartition(
+		"test", 1, sarama.OffsetOldest,
+	).YieldMessage(&sarama.ConsumerMessage{Value: []byte("hello world again")})
+	consumer.ExpectConsumePartition(
+		"other", 0, AnyOffset,
+	).YieldMessage(&sarama.ConsumerMessage{Value: []byte("hello other")})
 
 	pc_test0, err := consumer.ConsumePartition("test", 0, sarama.OffsetOldest)
 	if err != nil {
@@ -194,7 +200,9 @@ func TestConsumerWithoutExpectationsOnPartition(t *testing.T) {
 func TestConsumerWithExpectationsOnUnconsumedPartition(t *testing.T) {
 	trm := newTestReporterMock()
 	consumer := NewConsumer(trm, NewTestConfig())
-	consumer.ExpectConsumePartition("test", 0, sarama.OffsetOldest).YieldMessage(&sarama.ConsumerMessage{Value: []byte("hello world")})
+	consumer.ExpectConsumePartition(
+		"test", 0, sarama.OffsetOldest,
+	).YieldMessage(&sarama.ConsumerMessage{Value: []byte("hello world")})
 
 	if err := consumer.Close(); err != nil {
 		t.Error("No error expected on close, but found:", err)
@@ -280,10 +288,12 @@ func TestConsumerTopicMetadata(t *testing.T) {
 	trm := newTestReporterMock()
 	consumer := NewConsumer(trm, NewTestConfig())
 
-	consumer.SetTopicMetadata(map[string][]int32{
-		"test1": {0, 1, 2, 3},
-		"test2": {0, 1, 2, 3, 4, 5, 6, 7},
-	})
+	consumer.SetTopicMetadata(
+		map[string][]int32{
+			"test1": {0, 1, 2, 3},
+			"test2": {0, 1, 2, 3, 4, 5, 6, 7},
+		},
+	)
 
 	topics, err := consumer.Topics()
 	if err != nil {
@@ -414,7 +424,9 @@ func TestConsumerInvalidConfiguration(t *testing.T) {
 
 	if len(trm.errors) != 1 {
 		t.Error("Expected to report a single error")
-	} else if !strings.Contains(trm.errors[0], `ClientID value "not a valid consumer ID" is not valid for Kafka versions before 1.0.0`) {
+	} else if !strings.Contains(
+		trm.errors[0], `ClientID value "not a valid consumer ID" is not valid for Kafka versions before 1.0.0`,
+	) {
 		t.Errorf("Unexpected error: %s", trm.errors[0])
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 func TestMockSyncProducerImplementsSyncProducerInterface(t *testing.T) {
@@ -124,22 +124,26 @@ func TestSyncProducerUseTxn(t *testing.T) {
 		t.Errorf("The first message should have been assigned offset 1, but got %d", msg.Offset)
 	}
 
-	if err := sp.AddMessageToTxn(&sarama.ConsumerMessage{
-		Topic:     "original-topic",
-		Partition: 0,
-		Offset:    123,
-	}, "test-group", nil); err != nil {
+	if err := sp.AddMessageToTxn(
+		&sarama.ConsumerMessage{
+			Topic: "original-topic",
+			Partition: 0,
+			Offset: 123,
+		}, "test-group", nil,
+	); err != nil {
 		t.Error(err)
 	}
 
-	if err := sp.AddOffsetsToTxn(map[string][]*sarama.PartitionOffsetMetadata{
-		"original-topic": {
-			{
-				Partition: 1,
-				Offset:    321,
+	if err := sp.AddOffsetsToTxn(
+		map[string][]*sarama.PartitionOffsetMetadata{
+			"original-topic": {
+				{
+					Partition: 1,
+					Offset:    321,
+				},
 			},
-		},
-	}, "test-group"); err != nil {
+		}, "test-group",
+	); err != nil {
 		t.Error(err)
 	}
 
@@ -365,7 +369,9 @@ func TestSyncProducerInvalidConfiguration(t *testing.T) {
 
 	if len(trm.errors) != 1 {
 		t.Error("Expected to report a single error")
-	} else if !strings.Contains(trm.errors[0], `ClientID value "not a valid producer ID" is not valid for Kafka versions before 1.0.0`) {
+	} else if !strings.Contains(
+		trm.errors[0], `ClientID value "not a valid producer ID" is not valid for Kafka versions before 1.0.0`,
+	) {
 		t.Errorf("Unexpected error: %s", trm.errors[0])
 	}
 }

@@ -1,4 +1,4 @@
-module github.com/k-streamer/sarama/examples/sasl_scram_client
+module github.com/kcore-io/sarama/examples/sasl_scram_client
 
 go 1.18
 
@@ -31,4 +31,4 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 )
 
-replace github.com/k-streamer/sarama => ../../
+replace github.com/kcore-io/sarama => ../../

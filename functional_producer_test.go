@@ -16,7 +16,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/stretchr/testify/require"
 
-	"github.com/k-streamer/sarama/internal/toxiproxy"
+	"github.com/kcore-io/sarama/internal/toxiproxy"
 )
 
 const TestBatchSize = 1000
@@ -620,7 +620,9 @@ func TestFuncTxnAbortedProduce(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < 2; i++ {
-		nonTransactionalProducer.Input() <- &ProducerMessage{Topic: "test.1", Key: nil, Value: StringEncoder("non-transactional")}
+		nonTransactionalProducer.Input() <- &ProducerMessage{
+			Topic: "test.1", Key: nil, Value: StringEncoder("non-transactional"),
+		}
 		<-nonTransactionalProducer.Successes()
 	}
 
@@ -642,7 +644,9 @@ func TestFuncProducingToInvalidTopic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, _, err := producer.SendMessage(&ProducerMessage{Topic: "in/valid"}); !errors.Is(err, ErrUnknownTopicOrPartition) && !errors.Is(err, ErrInvalidTopic) {
+	if _, _, err := producer.SendMessage(&ProducerMessage{Topic: "in/valid"}); !errors.Is(
+		err, ErrUnknownTopicOrPartition,
+	) && !errors.Is(err, ErrInvalidTopic) {
 		t.Error("Expected ErrUnknownTopicOrPartition, found", err)
 	}
 
@@ -672,10 +676,12 @@ func TestFuncProducingIdempotentWithBrokerFailure(t *testing.T) {
 
 	// Successfully publish a few messages
 	for i := 0; i < 10; i++ {
-		_, _, err = producer.SendMessage(&ProducerMessage{
-			Topic: "test.1",
-			Value: StringEncoder(fmt.Sprintf("%d message", i)),
-		})
+		_, _, err = producer.SendMessage(
+			&ProducerMessage{
+				Topic: "test.1",
+				Value: StringEncoder(fmt.Sprintf("%d message", i)),
+			},
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -693,10 +699,12 @@ func TestFuncProducingIdempotentWithBrokerFailure(t *testing.T) {
 
 	// This should fail hard now
 	for i := 10; i < 20; i++ {
-		_, _, err = producer.SendMessage(&ProducerMessage{
-			Topic: "test.1",
-			Value: StringEncoder(fmt.Sprintf("%d message", i)),
-		})
+		_, _, err = producer.SendMessage(
+			&ProducerMessage{
+				Topic: "test.1",
+				Value: StringEncoder(fmt.Sprintf("%d message", i)),
+			},
+		)
 		if err == nil {
 			t.Fatal(err)
 		}
@@ -715,10 +723,12 @@ func TestFuncProducingIdempotentWithBrokerFailure(t *testing.T) {
 	// We should be able to publish again (once everything calms down)
 	// (otherwise it times out)
 	for {
-		_, _, err = producer.SendMessage(&ProducerMessage{
-			Topic: "test.1",
-			Value: StringEncoder("comeback message"),
-		})
+		_, _, err = producer.SendMessage(
+			&ProducerMessage{
+				Topic: "test.1",
+				Value: StringEncoder("comeback message"),
+			},
+		)
 		if err == nil {
 			break
 		}
@@ -823,82 +833,86 @@ func testProducingMessages(t *testing.T, config *Config, minVersion KafkaVersion
 
 	for version := range kafkaVersions {
 		name := t.Name() + "-v" + version.String()
-		t.Run(name, func(t *testing.T) {
-			config.ClientID = name
-			config.MetricRegistry = metrics.NewRegistry()
-			checkKafkaVersion(t, version.String())
-			config.Version = version
+		t.Run(
+			name, func(t *testing.T) {
+				config.ClientID = name
+				config.MetricRegistry = metrics.NewRegistry()
+				checkKafkaVersion(t, version.String())
+				config.Version = version
 
-			client, err := NewClient(FunctionalTestEnv.KafkaBrokerAddrs, config)
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer safeClose(t, client)
-
-			// Keep in mind the current offset
-			initialOffset, err := client.GetOffset("test.1", 0, OffsetNewest)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			producer, err := NewAsyncProducerFromClient(client)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			expectedResponses := TestBatchSize
-			for i := 1; i <= TestBatchSize; {
-				msg := &ProducerMessage{Topic: "test.1", Key: nil, Value: StringEncoder(fmt.Sprintf("testing %d", i))}
-				select {
-				case producer.Input() <- msg:
-					i++
-				case ret := <-producer.Errors():
-					t.Fatal(ret.Err)
-				case <-producer.Successes():
-					expectedResponses--
+				client, err := NewClient(FunctionalTestEnv.KafkaBrokerAddrs, config)
+				if err != nil {
+					t.Fatal(err)
 				}
-			}
-			for expectedResponses > 0 {
-				select {
-				case ret := <-producer.Errors():
-					t.Fatal(ret.Err)
-				case <-producer.Successes():
-					expectedResponses--
+				defer safeClose(t, client)
+
+				// Keep in mind the current offset
+				initialOffset, err := client.GetOffset("test.1", 0, OffsetNewest)
+				if err != nil {
+					t.Fatal(err)
 				}
-			}
-			safeClose(t, producer)
 
-			// Validate producer metrics before using the consumer minus the offset request
-			validateProducerMetrics(t, client)
+				producer, err := NewAsyncProducerFromClient(client)
+				if err != nil {
+					t.Fatal(err)
+				}
 
-			master, err := NewConsumerFromClient(client)
-			if err != nil {
-				t.Fatal(err)
-			}
-			consumer, err := master.ConsumePartition("test.1", 0, initialOffset)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			for i := 1; i <= TestBatchSize; i++ {
-				select {
-				case <-time.After(10 * time.Second):
-					t.Fatal("Not received any more events in the last 10 seconds.")
-
-				case err := <-consumer.Errors():
-					t.Error(err)
-
-				case message := <-consumer.Messages():
-					if string(message.Value) != fmt.Sprintf("testing %d", i) {
-						t.Fatalf("Unexpected message with index %d: %s", i, message.Value)
+				expectedResponses := TestBatchSize
+				for i := 1; i <= TestBatchSize; {
+					msg := &ProducerMessage{
+						Topic: "test.1", Key: nil, Value: StringEncoder(fmt.Sprintf("testing %d", i)),
+					}
+					select {
+					case producer.Input() <- msg:
+						i++
+					case ret := <-producer.Errors():
+						t.Fatal(ret.Err)
+					case <-producer.Successes():
+						expectedResponses--
 					}
 				}
-			}
+				for expectedResponses > 0 {
+					select {
+					case ret := <-producer.Errors():
+						t.Fatal(ret.Err)
+					case <-producer.Successes():
+						expectedResponses--
+					}
+				}
+				safeClose(t, producer)
 
-			validateConsumerMetrics(t, client)
+				// Validate producer metrics before using the consumer minus the offset request
+				validateProducerMetrics(t, client)
 
-			safeClose(t, consumer)
-		})
+				master, err := NewConsumerFromClient(client)
+				if err != nil {
+					t.Fatal(err)
+				}
+				consumer, err := master.ConsumePartition("test.1", 0, initialOffset)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				for i := 1; i <= TestBatchSize; i++ {
+					select {
+					case <-time.After(10 * time.Second):
+						t.Fatal("Not received any more events in the last 10 seconds.")
+
+					case err := <-consumer.Errors():
+						t.Error(err)
+
+					case message := <-consumer.Messages():
+						if string(message.Value) != fmt.Sprintf("testing %d", i) {
+							t.Fatalf("Unexpected message with index %d: %s", i, message.Value)
+						}
+					}
+				}
+
+				validateConsumerMetrics(t, client)
+
+				safeClose(t, consumer)
+			},
+		)
 	}
 }
 
@@ -1022,7 +1036,9 @@ func validateProducerMetrics(t *testing.T, client Client) {
 			// records will be grouped in batchSet rather than msgSet
 			metricValidators.registerForGlobalAndTopic("test_1", minCountHistogramValidator("compression-ratio", 3))
 		} else {
-			metricValidators.registerForGlobalAndTopic("test_1", countHistogramValidator("compression-ratio", TestBatchSize))
+			metricValidators.registerForGlobalAndTopic(
+				"test_1", countHistogramValidator("compression-ratio", TestBatchSize),
+			)
 		}
 		metricValidators.registerForGlobalAndTopic("test_1", minValHistogramValidator("compression-ratio", 100))
 		metricValidators.registerForGlobalAndTopic("test_1", maxValHistogramValidator("compression-ratio", 100))

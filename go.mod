@@ -1,4 +1,4 @@
-module github.com/k-streamer/sarama
+module github.com/kcore-io/sarama
 
 go 1.18
 

@@ -12,18 +12,18 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 // Sarama configuration options
 var (
-	brokers  = ""
-	version  = ""
-	group    = ""
-	topics   = ""
+	brokers = ""
+	version = ""
+	group = ""
+	topics = ""
 	assignor = ""
-	oldest   = true
-	verbose  = false
+	oldest = true
+	verbose = false
 )
 
 func init() {
@@ -31,7 +31,9 @@ func init() {
 	flag.StringVar(&group, "group", "", "Kafka consumer group definition")
 	flag.StringVar(&version, "version", sarama.DefaultVersion.String(), "Kafka cluster version")
 	flag.StringVar(&topics, "topics", "", "Kafka topics to be consumed, as a comma separated list")
-	flag.StringVar(&assignor, "assignor", "range", "Consumer group partition assignment strategy (range, roundrobin, sticky)")
+	flag.StringVar(
+		&assignor, "assignor", "range", "Consumer group partition assignment strategy (range, roundrobin, sticky)",
+	)
 	flag.BoolVar(&oldest, "oldest", true, "Kafka consumer consume initial offset from oldest")
 	flag.BoolVar(&verbose, "verbose", false, "Sarama logging")
 	flag.Parse()
@@ -184,7 +186,7 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 	// NOTE:
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
-	// https://github.com/k-streamer/sarama/blob/main/consumer_group.go#L27-L29
+	// https://github.com/kcore-io/sarama/blob/main/consumer_group.go#L27-L29
 	for {
 		select {
 		case message, ok := <-claim.Messages():
@@ -192,7 +194,10 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 				log.Printf("message channel was closed")
 				return nil
 			}
-			log.Printf("Message claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp, message.Topic)
+			log.Printf(
+				"Message claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp,
+				message.Topic,
+			)
 			session.MarkMessage(message, "")
 		// Should return when `session.Context()` is done.
 		// If not, will raise `ErrRebalanceInProgress` or `read tcp <ip>:<port>: i/o timeout` when kafka rebalance. see:

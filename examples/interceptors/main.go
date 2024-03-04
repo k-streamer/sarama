@@ -12,7 +12,7 @@ import (
 
 	stdout "go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 var (
@@ -71,7 +71,11 @@ func main() {
 			for i := 0; i < bulkSize; i++ {
 				producer.Input() <- &sarama.ProducerMessage{
 					Topic: *topic, Key: nil,
-					Value: sarama.StringEncoder(fmt.Sprintf("test message %v/%v from kafka-client-go-test at %s", i+1, bulkSize, now)),
+					Value: sarama.StringEncoder(
+						fmt.Sprintf(
+							"test message %v/%v from kafka-client-go-test at %s", i+1, bulkSize, now,
+						),
+					),
 				}
 			}
 		case <-signals:

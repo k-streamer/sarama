@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/k-streamer/sarama"
+	"github.com/kcore-io/sarama"
 )
 
 // AsyncProducer implements sarama's Producer interface for testing purposes.
@@ -64,7 +64,10 @@ func NewAsyncProducer(t ErrorReporter, config *sarama.Config) *AsyncProducer {
 			mp.txnLock.Lock()
 			if mp.IsTransactional() && mp.txnStatus&sarama.ProducerTxnFlagInTransaction == 0 {
 				mp.t.Errorf("attempt to send message when transaction is not started or is in ending state.")
-				mp.errors <- &sarama.ProducerError{Err: errors.New("attempt to send message when transaction is not started or is in ending state"), Msg: msg}
+				mp.errors <- &sarama.ProducerError{
+					Err: errors.New("attempt to send message when transaction is not started or is in ending state"),
+					Msg: msg,
+				}
 				continue
 			}
 			mp.txnLock.Unlock()
@@ -118,9 +121,9 @@ func NewAsyncProducer(t ErrorReporter, config *sarama.Config) *AsyncProducer {
 	return mp
 }
 
-////////////////////////////////////////////////
+// //////////////////////////////////////////////
 // Implement Producer interface
-////////////////////////////////////////////////
+// //////////////////////////////////////////////
 
 // AsyncClose corresponds with the AsyncClose method of sarama's Producer implementation.
 // By closing a mock producer, you also tell it that no more input will be provided, so it will
@@ -200,9 +203,9 @@ func (mp *AsyncProducer) AddMessageToTxn(msg *sarama.ConsumerMessage, groupId st
 	return nil
 }
 
-////////////////////////////////////////////////
+// //////////////////////////////////////////////
 // Setting expectations
-////////////////////////////////////////////////
+// //////////////////////////////////////////////
 
 // ExpectInputWithMessageCheckerFunctionAndSucceed sets an expectation on the mock producer that a
 // message will be provided on the input channel. The mock producer will call the given function to

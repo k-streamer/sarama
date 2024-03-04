@@ -1,4 +1,4 @@
-module github.com/k-streamer/sarama/examples/interceptors
+module github.com/kcore-io/sarama/examples/interceptors
 
 go 1.18
 
@@ -36,4 +36,4 @@ require (
 	golang.org/x/sys v0.15.0 // indirect
 )
 
-replace github.com/k-streamer/sarama => ../../
+replace github.com/kcore-io/sarama => ../../

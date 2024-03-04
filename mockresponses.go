@@ -107,7 +107,10 @@ func NewMockDescribeGroupsResponse(t TestReporter) *MockDescribeGroupsResponse {
 	}
 }
 
-func (m *MockDescribeGroupsResponse) AddGroupDescription(groupID string, description *GroupDescription) *MockDescribeGroupsResponse {
+func (m *MockDescribeGroupsResponse) AddGroupDescription(
+	groupID string,
+	description *GroupDescription,
+) *MockDescribeGroupsResponse {
 	m.groups[groupID] = description
 	return m
 }
@@ -122,10 +125,12 @@ func (m *MockDescribeGroupsResponse) For(reqBody VersionedDecoder) EncoderWithHe
 		} else {
 			// Mimic real kafka - if a group doesn't exist, return
 			// an entry with state "Dead"
-			response.Groups = append(response.Groups, &GroupDescription{
-				GroupId: requestedGroup,
-				State:   "Dead",
-			})
+			response.Groups = append(
+				response.Groups, &GroupDescription{
+					GroupId: requestedGroup,
+					State:   "Dead",
+				},
+			)
 		}
 	}
 
@@ -195,7 +200,9 @@ func (mmr *MockMetadataResponse) For(reqBody VersionedDecoder) EncoderWithHeader
 	if len(metadataRequest.Topics) == 0 {
 		for topic, partitions := range mmr.leaders {
 			for partition, brokerID := range partitions {
-				metadataResponse.AddTopicPartition(topic, partition, brokerID, replicas, replicas, offlineReplicas, ErrNoError)
+				metadataResponse.AddTopicPartition(
+					topic, partition, brokerID, replicas, replicas, offlineReplicas, ErrNoError,
+				)
 			}
 		}
 		for topic, err := range mmr.errors {
@@ -214,7 +221,9 @@ func (mmr *MockMetadataResponse) For(reqBody VersionedDecoder) EncoderWithHeader
 			continue
 		}
 		for partition, brokerID := range leaders {
-			metadataResponse.AddTopicPartition(topic, partition, brokerID, replicas, replicas, offlineReplicas, ErrNoError)
+			metadataResponse.AddTopicPartition(
+				topic, partition, brokerID, replicas, replicas, offlineReplicas, ErrNoError,
+			)
 		}
 	}
 	return metadataResponse
@@ -308,11 +317,21 @@ func NewMockFetchResponse(t TestReporter, batchSize int) *MockFetchResponse {
 	}
 }
 
-func (mfr *MockFetchResponse) SetMessage(topic string, partition int32, offset int64, msg UtilEncoder) *MockFetchResponse {
+func (mfr *MockFetchResponse) SetMessage(
+	topic string,
+	partition int32,
+	offset int64,
+	msg UtilEncoder,
+) *MockFetchResponse {
 	return mfr.SetMessageWithKey(topic, partition, offset, nil, msg)
 }
 
-func (mfr *MockFetchResponse) SetMessageWithKey(topic string, partition int32, offset int64, key, msg UtilEncoder) *MockFetchResponse {
+func (mfr *MockFetchResponse) SetMessageWithKey(
+	topic string,
+	partition int32,
+	offset int64,
+	key, msg UtilEncoder,
+) *MockFetchResponse {
 	mfr.messagesLock.Lock()
 	defer mfr.messagesLock.Unlock()
 	partitions := mfr.messages[topic]
@@ -456,7 +475,11 @@ func NewMockFindCoordinatorResponse(t TestReporter) *MockFindCoordinatorResponse
 	}
 }
 
-func (mr *MockFindCoordinatorResponse) SetCoordinator(coordinatorType CoordinatorType, group string, broker *MockBroker) *MockFindCoordinatorResponse {
+func (mr *MockFindCoordinatorResponse) SetCoordinator(
+	coordinatorType CoordinatorType,
+	group string,
+	broker *MockBroker,
+) *MockFindCoordinatorResponse {
 	switch coordinatorType {
 	case CoordinatorGroup:
 		mr.groupCoordinators[group] = broker
@@ -466,7 +489,11 @@ func (mr *MockFindCoordinatorResponse) SetCoordinator(coordinatorType Coordinato
 	return mr
 }
 
-func (mr *MockFindCoordinatorResponse) SetError(coordinatorType CoordinatorType, group string, kerror KError) *MockFindCoordinatorResponse {
+func (mr *MockFindCoordinatorResponse) SetError(
+	coordinatorType CoordinatorType,
+	group string,
+	kerror KError,
+) *MockFindCoordinatorResponse {
 	switch coordinatorType {
 	case CoordinatorGroup:
 		mr.groupCoordinators[group] = kerror
@@ -505,7 +532,11 @@ func NewMockOffsetCommitResponse(t TestReporter) *MockOffsetCommitResponse {
 	return &MockOffsetCommitResponse{t: t}
 }
 
-func (mr *MockOffsetCommitResponse) SetError(group, topic string, partition int32, kerror KError) *MockOffsetCommitResponse {
+func (mr *MockOffsetCommitResponse) SetError(
+	group, topic string,
+	partition int32,
+	kerror KError,
+) *MockOffsetCommitResponse {
 	if mr.errors == nil {
 		mr.errors = make(map[string]map[string]map[int32]KError)
 	}
@@ -588,7 +619,7 @@ func (mr *MockProduceResponse) For(reqBody VersionedDecoder) EncoderWithHeader {
 	if mr.version > 0 {
 		res.Version = mr.version
 	}
-	for topic, partitions := range req.records {
+	for topic, partitions := range req.Records {
 		for partition := range partitions {
 			res.AddTopicPartition(topic, partition, mr.getError(topic, partition))
 		}
@@ -619,7 +650,13 @@ func NewMockOffsetFetchResponse(t TestReporter) *MockOffsetFetchResponse {
 	return &MockOffsetFetchResponse{t: t}
 }
 
-func (mr *MockOffsetFetchResponse) SetOffset(group, topic string, partition int32, offset int64, metadata string, kerror KError) *MockOffsetFetchResponse {
+func (mr *MockOffsetFetchResponse) SetOffset(
+	group, topic string,
+	partition int32,
+	offset int64,
+	metadata string,
+	kerror KError,
+) *MockOffsetFetchResponse {
 	if mr.offsets == nil {
 		mr.offsets = make(map[string]map[string]map[int32]*OffsetFetchResponseBlock)
 	}
@@ -822,7 +859,8 @@ func (mr *MockDescribeConfigsResponse) For(reqBody VersionedDecoder) EncoderWith
 		var configEntries []*ConfigEntry
 		switch r.Type {
 		case BrokerResource:
-			configEntries = append(configEntries,
+			configEntries = append(
+				configEntries,
 				&ConfigEntry{
 					Name:     "min.insync.replicas",
 					Value:    "2",
@@ -830,12 +868,15 @@ func (mr *MockDescribeConfigsResponse) For(reqBody VersionedDecoder) EncoderWith
 					Default:  false,
 				},
 			)
-			res.Resources = append(res.Resources, &ResourceResponse{
-				Name:    r.Name,
-				Configs: configEntries,
-			})
+			res.Resources = append(
+				res.Resources, &ResourceResponse{
+					Name:    r.Name,
+					Configs: configEntries,
+				},
+			)
 		case BrokerLoggerResource:
-			configEntries = append(configEntries,
+			configEntries = append(
+				configEntries,
 				&ConfigEntry{
 					Name:     "kafka.controller.KafkaController",
 					Value:    "DEBUG",
@@ -843,10 +884,12 @@ func (mr *MockDescribeConfigsResponse) For(reqBody VersionedDecoder) EncoderWith
 					Default:  false,
 				},
 			)
-			res.Resources = append(res.Resources, &ResourceResponse{
-				Name:    r.Name,
-				Configs: configEntries,
-			})
+			res.Resources = append(
+				res.Resources, &ResourceResponse{
+					Name:    r.Name,
+					Configs: configEntries,
+				},
+			)
 		case TopicResource:
 			maxMessageBytes := &ConfigEntry{
 				Name:      "max.message.bytes",
@@ -889,11 +932,14 @@ func (mr *MockDescribeConfigsResponse) For(reqBody VersionedDecoder) EncoderWith
 				Sensitive: true,
 			}
 			configEntries = append(
-				configEntries, maxMessageBytes, retentionMs, password)
-			res.Resources = append(res.Resources, &ResourceResponse{
-				Name:    r.Name,
-				Configs: configEntries,
-			})
+				configEntries, maxMessageBytes, retentionMs, password,
+			)
+			res.Resources = append(
+				res.Resources, &ResourceResponse{
+					Name:    r.Name,
+					Configs: configEntries,
+				},
+			)
 		}
 	}
 	return res
@@ -914,12 +960,14 @@ func (mr *MockDescribeConfigsResponseWithErrorCode) For(reqBody VersionedDecoder
 	}
 
 	for _, r := range req.Resources {
-		res.Resources = append(res.Resources, &ResourceResponse{
-			Name:      r.Name,
-			Type:      r.Type,
-			ErrorCode: 83,
-			ErrorMsg:  "",
-		})
+		res.Resources = append(
+			res.Resources, &ResourceResponse{
+				Name:      r.Name,
+				Type:      r.Type,
+				ErrorCode: 83,
+				ErrorMsg:  "",
+			},
+		)
 	}
 	return res
 }
@@ -937,11 +985,13 @@ func (mr *MockAlterConfigsResponse) For(reqBody VersionedDecoder) EncoderWithHea
 	res := &AlterConfigsResponse{Version: req.APIVersion()}
 
 	for _, r := range req.Resources {
-		res.Resources = append(res.Resources, &AlterConfigsResourceResponse{
-			Name:     r.Name,
-			Type:     r.Type,
-			ErrorMsg: "",
-		})
+		res.Resources = append(
+			res.Resources, &AlterConfigsResourceResponse{
+				Name:     r.Name,
+				Type:     r.Type,
+				ErrorMsg: "",
+			},
+		)
 	}
 	return res
 }
@@ -959,12 +1009,14 @@ func (mr *MockAlterConfigsResponseWithErrorCode) For(reqBody VersionedDecoder) E
 	res := &AlterConfigsResponse{Version: req.APIVersion()}
 
 	for _, r := range req.Resources {
-		res.Resources = append(res.Resources, &AlterConfigsResourceResponse{
-			Name:      r.Name,
-			Type:      r.Type,
-			ErrorCode: 83,
-			ErrorMsg:  "",
-		})
+		res.Resources = append(
+			res.Resources, &AlterConfigsResourceResponse{
+				Name:      r.Name,
+				Type:      r.Type,
+				ErrorCode: 83,
+				ErrorMsg:  "",
+			},
+		)
 	}
 	return res
 }
@@ -982,11 +1034,13 @@ func (mr *MockIncrementalAlterConfigsResponse) For(reqBody VersionedDecoder) Enc
 	res := &IncrementalAlterConfigsResponse{Version: req.APIVersion()}
 
 	for _, r := range req.Resources {
-		res.Resources = append(res.Resources, &AlterConfigsResourceResponse{
-			Name:     r.Name,
-			Type:     r.Type,
-			ErrorMsg: "",
-		})
+		res.Resources = append(
+			res.Resources, &AlterConfigsResourceResponse{
+				Name:     r.Name,
+				Type:     r.Type,
+				ErrorMsg: "",
+			},
+		)
 	}
 	return res
 }
@@ -1004,12 +1058,14 @@ func (mr *MockIncrementalAlterConfigsResponseWithErrorCode) For(reqBody Versione
 	res := &IncrementalAlterConfigsResponse{Version: req.APIVersion()}
 
 	for _, r := range req.Resources {
-		res.Resources = append(res.Resources, &AlterConfigsResourceResponse{
-			Name:      r.Name,
-			Type:      r.Type,
-			ErrorCode: 83,
-			ErrorMsg:  "",
-		})
+		res.Resources = append(
+			res.Resources, &AlterConfigsResourceResponse{
+				Name:      r.Name,
+				Type:      r.Type,
+				ErrorCode: 83,
+				ErrorMsg:  "",
+			},
+		)
 	}
 	return res
 }
@@ -1084,7 +1140,9 @@ func (mr *MockListAclsResponse) For(reqBody VersionedDecoder) EncoderWithHeader 
 		permissionType = AclPermissionAllow
 	}
 
-	acl.Acls = append(acl.Acls, &Acl{Operation: req.Operation, PermissionType: permissionType, Host: host, Principal: principal})
+	acl.Acls = append(
+		acl.Acls, &Acl{Operation: req.Operation, PermissionType: permissionType, Host: host, Principal: principal},
+	)
 	res.ResourceAcls = append(res.ResourceAcls, acl)
 	res.Version = int16(req.Version)
 	return res
@@ -1212,7 +1270,12 @@ func NewMockDeleteOffsetRequest(t TestReporter) *MockDeleteOffsetResponse {
 	return &MockDeleteOffsetResponse{}
 }
 
-func (m *MockDeleteOffsetResponse) SetDeletedOffset(errorCode KError, topic string, partition int32, errorPartition KError) *MockDeleteOffsetResponse {
+func (m *MockDeleteOffsetResponse) SetDeletedOffset(
+	errorCode KError,
+	topic string,
+	partition int32,
+	errorPartition KError,
+) *MockDeleteOffsetResponse {
 	m.errorCode = errorCode
 	m.topic = topic
 	m.partition = partition
@@ -1396,22 +1459,29 @@ func NewMockDescribeLogDirsResponse(t TestReporter) *MockDescribeLogDirsResponse
 	return &MockDescribeLogDirsResponse{t: t}
 }
 
-func (m *MockDescribeLogDirsResponse) SetLogDirs(logDirPath string, topicPartitions map[string]int) *MockDescribeLogDirsResponse {
+func (m *MockDescribeLogDirsResponse) SetLogDirs(
+	logDirPath string,
+	topicPartitions map[string]int,
+) *MockDescribeLogDirsResponse {
 	var topics []DescribeLogDirsResponseTopic
 	for topic := range topicPartitions {
 		var partitions []DescribeLogDirsResponsePartition
 		for i := 0; i < topicPartitions[topic]; i++ {
-			partitions = append(partitions, DescribeLogDirsResponsePartition{
-				PartitionID: int32(i),
-				IsTemporary: false,
-				OffsetLag:   int64(0),
-				Size:        int64(1234),
-			})
+			partitions = append(
+				partitions, DescribeLogDirsResponsePartition{
+					PartitionID: int32(i),
+					IsTemporary: false,
+					OffsetLag:   int64(0),
+					Size:        int64(1234),
+				},
+			)
 		}
-		topics = append(topics, DescribeLogDirsResponseTopic{
-			Topic:      topic,
-			Partitions: partitions,
-		})
+		topics = append(
+			topics, DescribeLogDirsResponseTopic{
+				Topic:      topic,
+				Partitions: partitions,
+			},
+		)
 	}
 	logDir := DescribeLogDirsResponseDirMetadata{
 		ErrorCode: ErrNoError,

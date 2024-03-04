@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/k-streamer/sarama/internal/toxiproxy"
+	"github.com/kcore-io/sarama/internal/toxiproxy"
 )
 
 const uncommittedTopic = "uncommitted-topic-test-4"
@@ -346,10 +346,12 @@ func prepareTestTopics(ctx context.Context, env *testEnvironment) error {
 	defer controller.Close()
 
 	// Start by deleting the test topics (if they already exist)
-	deleteRes, err := controller.DeleteTopics(&DeleteTopicsRequest{
-		Topics:  testTopicNames,
-		Timeout: time.Minute,
-	})
+	deleteRes, err := controller.DeleteTopics(
+		&DeleteTopicsRequest{
+			Topics:  testTopicNames,
+			Timeout: time.Minute,
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("failed to delete test topics: %w", err)
 	}
@@ -365,9 +367,11 @@ func prepareTestTopics(ctx context.Context, env *testEnvironment) error {
 		var topicsOk bool
 		for i := 0; i < 60 && !topicsOk; i++ {
 			time.Sleep(1 * time.Second)
-			md, err := controller.GetMetadata(&MetadataRequest{
-				Topics: testTopicNames,
-			})
+			md, err := controller.GetMetadata(
+				&MetadataRequest{
+					Topics: testTopicNames,
+				},
+			)
 			if err != nil {
 				return fmt.Errorf("failed to get metadata for test topics: %w", err)
 			}
@@ -387,10 +391,12 @@ func prepareTestTopics(ctx context.Context, env *testEnvironment) error {
 	}
 
 	// now create the topics empty
-	createRes, err := controller.CreateTopics(&CreateTopicsRequest{
-		TopicDetails: testTopicDetails,
-		Timeout:      time.Minute,
-	})
+	createRes, err := controller.CreateTopics(
+		&CreateTopicsRequest{
+			TopicDetails: testTopicDetails,
+			Timeout:      time.Minute,
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create test topics: %w", err)
 	}
@@ -406,9 +412,11 @@ func prepareTestTopics(ctx context.Context, env *testEnvironment) error {
 		var topicsOk bool
 		for i := 0; i < 60 && !topicsOk; i++ {
 			time.Sleep(1 * time.Second)
-			md, err := controller.GetMetadata(&MetadataRequest{
-				Topics: testTopicNames,
-			})
+			md, err := controller.GetMetadata(
+				&MetadataRequest{
+					Topics: testTopicNames,
+				},
+			)
 			if err != nil {
 				return fmt.Errorf("failed to get metadata for test topics: %w", err)
 			}
@@ -446,7 +454,9 @@ func checkKafkaVersion(t testing.TB, requiredVersion string) {
 		available := parseKafkaVersion(kafkaVersion)
 		required := parseKafkaVersion(requiredVersion)
 		if !available.satisfies(required) {
-			t.Skipf("Kafka version %s is required for this test; you have %s. Skipping...", requiredVersion, kafkaVersion)
+			t.Skipf(
+				"Kafka version %s is required for this test; you have %s. Skipping...", requiredVersion, kafkaVersion,
+			)
 		}
 	}
 }
@@ -511,7 +521,10 @@ func ensureFullyReplicated(t testing.TB, timeout time.Duration, retry time.Durat
 				for _, partition := range topic.Partitions {
 					if len(partition.Isr) != 3 {
 						ok = false
-						Logger.Printf("topic %s/%d is not fully-replicated Isr=%v Offline=%v\n", topic.Name, partition.ID, partition.Isr, partition.OfflineReplicas)
+						Logger.Printf(
+							"topic %s/%d is not fully-replicated Isr=%v Offline=%v\n", topic.Name, partition.ID,
+							partition.Isr, partition.OfflineReplicas,
+						)
 					}
 				}
 			}
